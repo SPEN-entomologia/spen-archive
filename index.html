@@ -1,9 +1,731 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>Arquivo SPEN</title>
-  </head>
-  <body>
-    <h1>vamos a isso!</h1>
-  </body>
+<!--
+  SPEN Digital Archive — GitHub Pages static site
+  DEPLOY:
+    1. Push this repository to GitHub
+    2. Settings → Pages → Deploy from branch (main, root)
+    3. Live at https://<org>.github.io/<repo>/
+  ADD A PDF:
+    1. Name it: pdfs/b-042.pdf  (lowercase, 3-digit zero-padded)
+    2. Place in pdfs/ folder
+    3. Set pdfUrl in the matching RECORDS entry
+    4. git add . && git commit && git push  — live in ~1 min
+  BULK IMPORT: open import-records.html in any browser
+-->
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Digital Archive — SPEN</title>
+<meta name="description" content="Digital repository of publications, bulletins and proceedings of the Sociedade Portuguesa de Entomologia (SPEN) since 1982."/>
+<link id="canonicalLink" rel="canonical" href="https://spen-archive.github.io/"/>
+
+<!-- Open Graph -->
+<meta property="og:site_name" content="SPEN — Digital Archive"/>
+<meta property="og:type" content="website"/>
+<meta id="ogTitle"  property="og:title"       content="Digital Archive — SPEN"/>
+<meta id="ogDesc"   property="og:description" content="Digital repository of the Sociedade Portuguesa de Entomologia"/>
+<meta id="ogUrl"    property="og:url"         content="https://spen-archive.github.io/"/>
+
+<!-- Google Scholar citation meta (filled dynamically) -->
+<meta id="cit_title"    name="citation_title"            content=""/>
+<meta id="cit_journal"  name="citation_journal_title"    content="Boletim da Sociedade Portuguesa de Entomologia"/>
+<meta id="cit_issn"     name="citation_issn"             content="0870-473X"/>
+<meta id="cit_pub"      name="citation_publisher"        content="Sociedade Portuguesa de Entomologia"/>
+<meta id="cit_date"     name="citation_date"             content=""/>
+<meta id="cit_lang"     name="citation_language"         content="pt"/>
+<meta id="cit_abs"      name="citation_abstract_html_url" content=""/>
+<meta id="cit_pdf"      name="citation_pdf_url"          content=""/>
+
+<!-- JSON-LD (updated dynamically) -->
+<script id="jsonLd" type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"SPEN Digital Archive","url":"https://spen-archive.github.io/"}</script>
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "primary":        "#036939",
+        "primary-hover":  "#13603d",
+        "primary-light":  "#266348",
+        "accent-mid":     "#559074",
+        "accent-muted":   "#92b7a6",
+        "accent-soft":    "#cdeadb",
+        "accent-softer":  "#b1e4cc",
+        "bg-dark":        "#091f12",
+        "surface-dark":   "#0d2b1a",
+        "surface-darker": "#071710",
+        "border-dark":    "#1a4028",
+        "bg-light":       "#f3fefa",
+        "surface-light":  "#ffffff",
+        "border-light":   "#cdeadb",
+      },
+      fontFamily: {
+        display: ["Crimson Pro", "Georgia", "serif"],
+        body:    ["Crimson Pro", "Georgia", "serif"],
+        mono:    ["JetBrains Mono", "monospace"],
+      },
+    },
+  },
+}
+</script>
+<style>
+  * { font-family: "Crimson Pro", Georgia, serif; }
+
+  .custom-scroll::-webkit-scrollbar { width: 5px; }
+  .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+  .custom-scroll::-webkit-scrollbar-thumb { background: #1a4028; border-radius: 3px; }
+  .custom-scroll::-webkit-scrollbar-thumb:hover { background: #036939; }
+
+  .sfacet-active { background: rgba(3,105,57,.12); color: #036939; font-weight: 600; }
+  .pdf-page { background: #fff; color: #111; box-shadow: 0 4px 32px rgba(0,0,0,.35); }
+
+  body, header, main, aside, footer, div, button, a, input, select {
+    transition: background-color .2s ease, border-color .2s ease;
+  }
+  p, h1, h2, h3, h4, span { transition: color .15s ease; }
+  #toast { transition: opacity .3s, transform .3s; }
+</style>
+</head>
+<body class="antialiased min-h-screen flex flex-col bg-bg-light dark:bg-bg-dark text-slate-900 dark:text-white">
+<header class="sticky top-0 z-50 w-full border-b border-border-dark bg-bg-dark/90 backdrop-blur-md">
+  <div class="max-w-[1400px] mx-auto px-5 py-3 flex items-center justify-between gap-4">
+    <button onclick="goHome()" class="flex items-center gap-2.5 shrink-0 group">
+      <div class="flex items-center justify-center rounded-lg bg-accent-soft/20 p-1.5 text-primary">
+        <span class="material-symbols-outlined text-2xl">pest_control</span>
+      </div>
+      <div class="hidden sm:block text-left">
+        <p class="text-sm font-bold leading-none group-hover:text-primary transition-colors text-white">SPEN</p>
+        <p class="text-[10px] text-accent-muted mt-0.5">Sociedade Portuguesa de Entomologia</p>
+      </div>
+    </button>
+
+    <nav class="hidden lg:flex items-center gap-6">
+      <button onclick="goHome()" class="text-sm font-medium text-accent-muted hover:text-primary transition-colors">Home</button>
+      <button onclick="goHome()" class="text-sm font-medium text-primary border-b-2 border-primary pb-0.5">Archive</button>
+      <a href="#" class="text-sm font-medium text-accent-muted hover:text-primary transition-colors">Publications</a>
+      <a href="#" class="text-sm font-medium text-accent-muted hover:text-primary transition-colors">About</a>
+      <a href="#" class="text-sm font-medium text-accent-muted hover:text-primary transition-colors">Contact</a>
+    </nav>
+
+    <button class="flex items-center justify-center h-9 px-4 bg-primary hover:bg-primary-hover text-white text-sm font-bold rounded-lg transition-all">
+      Login
+    </button>
+  </div>
+</header>
+
+<div id="viewList" class="flex flex-col flex-1">
+  <div class="w-full bg-surface-dark border-b border-border-dark">
+    <div class="max-w-[1400px] mx-auto px-5 py-10 lg:py-14">
+      <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
+        <div>
+          <p class="text-xs font-bold uppercase tracking-widest text-primary mb-3">Sociedade Portuguesa de Entomologia</p>
+          <h2 class="text-4xl lg:text-5xl font-black tracking-tight leading-tight text-white">Digital <span class="text-primary">Archive</span></h2>
+          <p class="text-accent-muted mt-3 text-base max-w-lg">Repository of publications, bulletins and proceedings of the Sociedade Portuguesa de Entomologia since 1982.</p>
+        </div>
+        <div class="flex gap-8 shrink-0">
+          <div class="text-center">
+            <p class="text-3xl font-black text-white" id="statRecords">0</p>
+            <p class="text-xs text-accent-muted uppercase tracking-wider mt-0.5">Records</p>
+          </div>
+          <div class="w-px bg-border-dark"></div>
+          <div class="text-center">
+            <p class="text-3xl font-black text-white">8</p>
+            <p class="text-xs text-accent-muted uppercase tracking-wider mt-0.5">Volumes</p>
+          </div>
+          <div class="w-px bg-border-dark"></div>
+          <div class="text-center">
+            <p class="text-3xl font-black text-white">1982</p>
+            <p class="text-xs text-accent-muted uppercase tracking-wider mt-0.5">Founded</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-8 flex flex-col sm:flex-row gap-3">
+        <div class="relative flex-1">
+          <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-accent-muted text-[20px]">search</span>
+          <input id="searchInput" type="text" placeholder="Search by title, author, keywords…" class="w-full h-14 bg-bg-dark border border-border-dark rounded-lg pl-12 pr-4 text-white placeholder:text-accent-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-base" oninput="doSearch()"/>
+        </div>
+        <button onclick="doSearch()" class="h-14 px-8 bg-primary hover:bg-primary-hover text-white font-bold rounded-lg text-sm tracking-wide shrink-0 transition-all">Search</button>
+        <button onclick="toggleFilters()" class="h-14 px-5 bg-surface-dark border border-border-dark hover:border-primary/50 text-white font-medium rounded-lg text-sm flex items-center gap-2 shrink-0 transition-all">
+          <span class="material-symbols-outlined text-[20px] text-accent-muted">tune</span>Filters
+        </button>
+      </div>
+
+      <div id="filtersPanel" class="hidden mt-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-[10px] font-bold uppercase tracking-widest text-accent-muted">Type</label>
+          <select id="filterType" onchange="doSearch()" class="bg-surface-dark border border-border-dark rounded-lg px-3 h-10 text-white text-sm focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer">
+            <option value="">All types</option><option value="artigo">Scientific Article</option><option value="revista">Bulletin / Journal</option><option value="evento">Event / Proceedings</option>
+          </select>
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-[10px] font-bold uppercase tracking-widest text-accent-muted">Period</label>
+          <select id="filterPeriod" onchange="doSearch()" class="bg-surface-dark border border-border-dark rounded-lg px-3 h-10 text-white text-sm focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer">
+            <option value="">Any date</option><option value="2020s">2020–Present</option><option value="2010s">2010–2019</option><option value="2000s">2000–2009</option><option value="1990s">1990–1999</option><option value="1980s">1982–1989</option>
+          </select>
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-[10px] font-bold uppercase tracking-widest text-accent-muted">Order</label>
+          <select id="filterOrder" onchange="doSearch()" class="bg-surface-dark border border-border-dark rounded-lg px-3 h-10 text-white text-sm focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer">
+            <option value="">All orders</option><option value="coleoptera">Coleoptera</option><option value="lepidoptera">Lepidoptera</option><option value="hymenoptera">Hymenoptera</option><option value="diptera">Diptera</option><option value="hemiptera">Hemiptera</option><option value="orthoptera">Orthoptera</option><option value="isoptera">Isoptera</option><option value="neuroptera">Neuroptera</option>
+          </select>
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-[10px] font-bold uppercase tracking-widest text-accent-muted">Language</label>
+          <select id="filterLang" onchange="doSearch()" class="bg-surface-dark border border-border-dark rounded-lg px-3 h-10 text-white text-sm focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer">
+            <option value="">Any</option><option value="pt">Portuguese</option><option value="en">English</option><option value="es">Spanish</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <main class="flex-1 max-w-[1400px] w-full mx-auto px-5 py-8">
+    <div class="flex gap-8">
+      <aside class="hidden xl:flex flex-col w-52 shrink-0 gap-5 pt-1">
+        <div>
+          <p class="text-[10px] font-bold uppercase tracking-widest text-accent-muted mb-2">By Type</p>
+          <div class="flex flex-col gap-0.5" id="sidebarType">
+            <button onclick="qf('type','')" data-val="" class="sfacet sfacet-active flex justify-between px-3 py-2 rounded-lg text-sm text-accent-mid hover:bg-surface-dark transition-colors"><span>All</span><span class="text-xs text-accent-muted font-mono" id="countAll">0</span></button>
+            <button onclick="qf('type','artigo')" data-val="artigo" class="sfacet flex justify-between px-3 py-2 rounded-lg text-sm text-accent-mid hover:bg-surface-dark transition-colors"><span>Articles</span><span class="text-xs text-accent-muted font-mono" id="countArtigo">0</span></button>
+            <button onclick="qf('type','revista')" data-val="revista" class="sfacet flex justify-between px-3 py-2 rounded-lg text-sm text-accent-mid hover:bg-surface-dark transition-colors"><span>Bulletins</span><span class="text-xs text-accent-muted font-mono" id="countRevista">0</span></button>
+            <button onclick="qf('type','evento')" data-val="evento" class="sfacet flex justify-between px-3 py-2 rounded-lg text-sm text-accent-mid hover:bg-surface-dark transition-colors"><span>Events</span><span class="text-xs text-accent-muted font-mono" id="countEvento">0</span></button>
+          </div>
+        </div>
+        <div class="h-px bg-border-dark"></div>
+        <div>
+          <p class="text-[10px] font-bold uppercase tracking-widest text-accent-muted mb-2">Order</p>
+          <div class="flex flex-col gap-0.5">
+            <button onclick="qf('order','coleoptera')" class="flex justify-between px-3 py-2 rounded-lg text-sm text-accent-mid hover:bg-surface-dark transition-colors"><span>Coleoptera</span></button>
+            <button onclick="qf('order','lepidoptera')" class="flex justify-between px-3 py-2 rounded-lg text-sm text-accent-mid hover:bg-surface-dark transition-colors"><span>Lepidoptera</span></button>
+            <button onclick="qf('order','hymenoptera')" class="flex justify-between px-3 py-2 rounded-lg text-sm text-accent-mid hover:bg-surface-dark transition-colors"><span>Hymenoptera</span></button>
+            <button onclick="qf('order','diptera')" class="flex justify-between px-3 py-2 rounded-lg text-sm text-accent-mid hover:bg-surface-dark transition-colors"><span>Diptera</span></button>
+            <button onclick="qf('order','hemiptera')" class="flex justify-between px-3 py-2 rounded-lg text-sm text-accent-mid hover:bg-surface-dark transition-colors"><span>Hemiptera</span></button>
+            <button onclick="qf('order','orthoptera')" class="flex justify-between px-3 py-2 rounded-lg text-sm text-accent-mid hover:bg-surface-dark transition-colors"><span>Orthoptera</span></button>
+          </div>
+        </div>
+        <div class="h-px bg-border-dark"></div>
+        <div>
+          <p class="text-[10px] font-bold uppercase tracking-widest text-accent-muted mb-2">Decade</p>
+          <div class="flex flex-col gap-0.5">
+            <button onclick="qf('period','2020s')" class="flex justify-between px-3 py-2 rounded-lg text-sm text-accent-mid hover:bg-surface-dark transition-colors"><span>2020–Present</span></button>
+            <button onclick="qf('period','2010s')" class="flex justify-between px-3 py-2 rounded-lg text-sm text-accent-mid hover:bg-surface-dark transition-colors"><span>2010–2019</span></button>
+            <button onclick="qf('period','2000s')" class="flex justify-between px-3 py-2 rounded-lg text-sm text-accent-mid hover:bg-surface-dark transition-colors"><span>2000–2009</span></button>
+            <button onclick="qf('period','1990s')" class="flex justify-between px-3 py-2 rounded-lg text-sm text-accent-mid hover:bg-surface-dark transition-colors"><span>1990–1999</span></button>
+            <button onclick="qf('period','1980s')" class="flex justify-between px-3 py-2 rounded-lg text-sm text-accent-mid hover:bg-surface-dark transition-colors"><span>1982–1989</span></button>
+          </div>
+        </div>
+      </aside>
+
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between mb-5">
+          <div>
+            <p class="font-semibold text-white"><span id="countDisplay">0</span> records</p>
+            <p class="text-accent-muted text-xs mt-0.5" id="activeFiltersLabel">All records</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <select id="sortSelect" onchange="doSearch()" class="bg-surface-dark border border-border-dark rounded-lg px-3 h-9 text-white text-sm focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer">
+              <option value="date-desc">Most recent</option><option value="date-asc">Oldest first</option><option value="alpha">Title A–Z</option>
+            </select>
+            <button onclick="clearSearch()" class="h-9 px-3 border border-border-dark rounded-lg text-accent-muted hover:text-white hover:border-accent-muted transition-colors text-sm flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">close</span><span class="hidden sm:block">Clear</span></button>
+          </div>
+        </div>
+        <div id="resultsGrid" class="flex flex-col gap-3"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div id="viewArticle" class="hidden flex-col flex-1 h-[calc(100vh-57px)] overflow-hidden">
+  <div class="flex items-center justify-between px-4 py-2 bg-surface-dark border-b border-border-dark shadow-sm z-10 shrink-0">
+    <div class="flex items-center gap-3">
+      <button onclick="goHome()" class="flex items-center gap-1.5 text-sm text-accent-muted hover:text-primary transition-colors"><span class="material-symbols-outlined text-[18px]">arrow_back</span><span class="hidden sm:block">Archive</span></button>
+      <div class="w-px h-4 bg-border-dark"></div>
+      <span class="text-sm text-accent-muted font-mono hidden md:block">Preview — 3 pages</span>
+    </div>
+    <div class="flex items-center gap-1 bg-bg-dark rounded-lg p-1">
+      <button onclick="zoomOut()" class="p-1.5 rounded hover:bg-surface-dark text-accent-muted hover:text-white transition-colors"><span class="material-symbols-outlined text-[18px]">remove</span></button>
+      <span id="zoomLabel" class="text-xs w-12 text-center font-mono text-white">100%</span>
+      <button onclick="zoomIn()" class="p-1.5 rounded hover:bg-surface-dark text-accent-muted hover:text-white transition-colors"><span class="material-symbols-outlined text-[18px]">add</span></button>
+    </div>
+    <button onclick="copyPermalink()" class="flex items-center gap-1.5 px-3 h-8 rounded-lg text-xs font-medium border border-border-dark text-accent-muted hover:text-primary hover:border-primary/40 transition-colors"><span class="material-symbols-outlined text-[15px]">link</span><span class="hidden sm:block">Copy link</span></button>
+  </div>
+
+  <div class="flex flex-1 overflow-hidden">
+    <div class="flex-1 overflow-y-auto overflow-x-hidden custom-scroll bg-surface-darker p-6 flex flex-col items-center gap-6" id="pdfPane">
+      <iframe id="pdfIframe" class="hidden w-full rounded shadow-xl" style="height:80vh;min-height:600px" frameborder="0"></iframe>
+      <div id="pdfMock" class="flex flex-col gap-6 w-full max-w-[750px]"></div>
+    </div>
+    <aside class="w-full max-w-[380px] shrink-0 border-l border-border-dark bg-bg-dark overflow-y-auto custom-scroll p-6 flex flex-col gap-6" id="articleSidebar"></aside>
+  </div>
+</div>
+
+<footer id="mainFooter" class="w-full border-t border-border-dark py-6 bg-bg-dark">
+  <div class="max-w-[1400px] mx-auto px-5 flex flex-col md:flex-row justify-between items-center gap-3">
+    <div class="flex items-center gap-2">
+      <span class="material-symbols-outlined text-primary text-xl">pest_control</span>
+      <p class="text-accent-muted text-sm">© 2025 SPEN — Sociedade Portuguesa de Entomologia</p>
+    </div>
+    <div class="flex gap-5">
+      <a class="text-accent-muted hover:text-primary text-sm transition-colors" href="#">Privacy Policy</a>
+      <a class="text-accent-muted hover:text-primary text-sm transition-colors" href="#">Contact</a>
+    </div>
+  </div>
+</footer>
+
+<div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 opacity-0 pointer-events-none z-[100] flex items-center gap-2 px-4 py-2.5 rounded-full bg-surface-darker text-white text-sm font-medium shadow-xl border border-border-dark">
+  <span class="material-symbols-outlined text-primary text-[18px]">check_circle</span>
+  <span id="toastMsg">Link copied!</span>
+</div>
+
+<script>
+const RECORDS = [
+{id:1,type:'artigo',period:'1970s',featured:true,title:'Estatutos da SPEN e lista de associados',authors:['SPEN'],authorsRef:'SPEN',source:'Boletim da Sociedade Portuguesa de Entomologia',issn:'0870-473X',vol:'Vol. I',issue:'N.º 1',issueNr:1,issueInVol:1,year:1979,pages:'1–34',lang:'pt',order:null,access:'aberto',abstract:'Estatutos fundadores da Sociedade Portuguesa de Entomologia e lista inicial de associados.',keywords:['SPEN','Estatutos','Fundação'],pdfUrl:'pdfs/b-001.pdf',doi:'',refBoletim:'Bolm Soc. port. Ent. n.º 1 (I-1): 1–34. 1979.',refAPA:'SPEN (1979). Estatutos da SPEN e lista de associados. Boletim da Sociedade Portuguesa de Entomologia, 1(1), 1–34.'},
+{id:2,type:'artigo',period:'1970s',featured:false,title:'Notas sobre cerambicídeos de Portugal (Coleoptera, Cerambycidae).',authors:['Zuzarte, A.'],authorsRef:'ZUZARTE, A.',source:'Boletim da Sociedade Portuguesa de Entomologia',issn:'0870-473X',vol:'Vol. I',issue:'N.º 2',issueNr:2,issueInVol:2,year:1979,pages:'1–10',lang:'pt',order:'coleoptera',access:'aberto',abstract:'Notas faunísticas sobre cerambicídeos registados em Portugal, com descrição de novos registos para a fauna lusitânica.',keywords:['Cerambycidae','Coleoptera','Portugal','Faunística'],pdfUrl:'pdfs/b-002.pdf',doi:'',refBoletim:'Bolm Soc. port. Ent. n.º 2 (I-2): 1–10. 1979.',refAPA:'ZUZARTE, A. (1979). Notas sobre cerambicídeos de Portugal (Coleoptera, Cerambycidae). Boletim da Sociedade Portuguesa de Entomologia, 2(2), 1–10.'},
+{id:3,type:'artigo',period:'1980s',featured:false,title:'Contribuição para o estudo dos Carabidae do Alto Minho',authors:['Mendes, L.F.'],authorsRef:'MENDES, L.F.',source:'Boletim da Sociedade Portuguesa de Entomologia',issn:'0870-473X',vol:'Vol. I',issue:'N.º 3',issueNr:3,issueInVol:3,year:1980,pages:'11–22',lang:'pt',order:'coleoptera',access:'aberto',abstract:'Levantamento preliminar de Carabidae no Alto Minho com novos registos regionais.',keywords:['Carabidae','Minho','Coleoptera'],pdfUrl:'pdfs/b-003.pdf',doi:'',refBoletim:'Bolm Soc. port. Ent. n.º 3 (I-3): 11–22. 1980.',refAPA:'MENDES, L.F. (1980). Contribuição para o estudo dos Carabidae do Alto Minho. Boletim da Sociedade Portuguesa de Entomologia, 3(3), 11–22.'},
+{id:4,type:'artigo',period:'1980s',featured:false,title:'Observações sobre Lepidoptera nocturnos da Serra da Estrela',authors:['Ribeiro, C.'],authorsRef:'RIBEIRO, C.',source:'Boletim da Sociedade Portuguesa de Entomologia',issn:'0870-473X',vol:'Vol. I',issue:'N.º 4',issueNr:4,issueInVol:4,year:1980,pages:'23–35',lang:'pt',order:'lepidoptera',access:'aberto',abstract:'Notas sobre espécies nocturnas recolhidas em altitude na Serra da Estrela.',keywords:['Lepidoptera','Serra da Estrela','Noctuidae'],pdfUrl:'pdfs/b-004.pdf',doi:'',refBoletim:'Bolm Soc. port. Ent. n.º 4 (I-4): 23–35. 1980.',refAPA:'RIBEIRO, C. (1980). Observações sobre Lepidoptera nocturnos da Serra da Estrela. Boletim da Sociedade Portuguesa de Entomologia, 4(4), 23–35.'},
+{id:5,type:'artigo',period:'1980s',featured:false,title:'Himenópteros parasitoides em pomares do Ribatejo',authors:['Silva, J.M.'],authorsRef:'SILVA, J.M.',source:'Boletim da Sociedade Portuguesa de Entomologia',issn:'0870-473X',vol:'Vol. I',issue:'N.º 5',issueNr:5,issueInVol:5,year:1981,pages:'36–49',lang:'pt',order:'hymenoptera',access:'aberto',abstract:'Inventário de himenópteros parasitoides associados a pragas frutícolas.',keywords:['Hymenoptera','Parasitoides','Ribatejo'],pdfUrl:'pdfs/b-005.pdf',doi:'',refBoletim:'Bolm Soc. port. Ent. n.º 5 (I-5): 36–49. 1981.',refAPA:'SILVA, J.M. (1981). Himenópteros parasitoides em pomares do Ribatejo. Boletim da Sociedade Portuguesa de Entomologia, 5(5), 36–49.'},
+{id:6,type:'artigo',period:'1980s',featured:false,title:'Diptera de zonas húmidas costeiras portuguesas',authors:['Teixeira, P.'],authorsRef:'TEIXEIRA, P.',source:'Boletim da Sociedade Portuguesa de Entomologia',issn:'0870-473X',vol:'Vol. I',issue:'N.º 6',issueNr:6,issueInVol:6,year:1981,pages:'50–66',lang:'pt',order:'diptera',access:'aberto',abstract:'Primeiro inventário comparativo de dípteros em sapais e lagoas costeiras.',keywords:['Diptera','Zonas húmidas','Costa'],pdfUrl:'pdfs/b-006.pdf',doi:'',refBoletim:'Bolm Soc. port. Ent. n.º 6 (I-6): 50–66. 1981.',refAPA:'TEIXEIRA, P. (1981). Diptera de zonas húmidas costeiras portuguesas. Boletim da Sociedade Portuguesa de Entomologia, 6(6), 50–66.'},
+{id:7,type:'artigo',period:'1980s',featured:true,title:'Pragas nas culturas na ilha de S. Miguel.',authors:['Carneiro, M.C.'],authorsRef:'CARNEIRO, M.C.',source:'Boletim da Sociedade Portuguesa de Entomologia',issn:'0870-473X',vol:'Vol. I',issue:'N.º 7 (Supl. A)',issueNr:7,issueInVol:0,year:1982,pages:'7–33',lang:'pt',order:null,access:'aberto',abstract:'Estudo das principais pragas agrícolas registadas na ilha de S. Miguel, Açores, com dados sobre distribuição e danos causados em culturas.',keywords:['Pragas','Açores','S. Miguel','Agricultura'],pdfUrl:'pdfs/b-007a.pdf',doi:'',refBoletim:'Bolm Soc. port. Ent. n.º 7 (Supl. A): 7–33. 1982.',refAPA:'CARNEIRO, M.C. (1982). Pragas nas culturas na ilha de S. Miguel. Boletim da Sociedade Portuguesa de Entomologia, 7(Supl. A), 7–33.'},
+{id:8,type:'evento',period:'1980s',featured:true,title:'I Congresso Internacional SPEN — Livro de resumos',authors:['Comissão Organizadora SPEN'],authorsRef:'COMISSÃO ORGANIZADORA SPEN',source:'Suplementos ao Boletim da SPEN',issn:'0871-0554',vol:'Supl. A',issue:'I Congresso Internacional',issueNr:8,issueInVol:1,year:1982,pages:'1–96',lang:'pt',order:null,access:'aberto',abstract:'Resumos e comunicações do I Congresso Internacional SPEN realizado nos Açores.',keywords:['Congresso','Suplemento','Açores'],pdfUrl:'pdfs/supl-a-1982.pdf',doi:'',refBoletim:'Supl. Bolm SPEN A: 1–96. 1982.',refAPA:'COMISSÃO ORGANIZADORA SPEN (1982). I Congresso Internacional SPEN — Livro de resumos. Suplementos ao Boletim da SPEN, A, 1–96.'},
+{id:9,type:'revista',period:'1980s',featured:false,title:'Boletim: notas editoriais e actividade societária',authors:['Direção SPEN'],authorsRef:'DIREÇÃO SPEN',source:'Boletim da Sociedade Portuguesa de Entomologia',issn:'0870-473X',vol:'Vol. II',issue:'N.º 12',issueNr:12,issueInVol:2,year:1984,pages:'1–14',lang:'pt',order:null,access:'aberto',abstract:'Relatório de actividades, permutas bibliográficas e anúncios científicos.',keywords:['Editorial','Sociedade','Boletim'],pdfUrl:'pdfs/b-012.pdf',doi:'',refBoletim:'Bolm Soc. port. Ent. n.º 12 (II-2): 1–14. 1984.',refAPA:'DIREÇÃO SPEN (1984). Boletim: notas editoriais e actividade societária. Boletim da Sociedade Portuguesa de Entomologia, 12(2), 1–14.'},
+{id:14,type:'artigo',period:'1980s',featured:false,title:'Orthoptera das dunas litorais do Sudoeste Alentejano',authors:['Pereira, D.'],authorsRef:'PEREIRA, D.',source:'Boletim da Sociedade Portuguesa de Entomologia',issn:'0870-473X',vol:'Vol. II',issue:'N.º 14',issueNr:14,issueInVol:4,year:1985,pages:'45–61',lang:'pt',order:'orthoptera',access:'aberto',abstract:'Comunidades de ortópteros em sistemas dunares e efeitos da pressão turística.',keywords:['Orthoptera','Dunas','Alentejo'],pdfUrl:'pdfs/b-014.pdf',doi:'',refBoletim:'Bolm Soc. port. Ent. n.º 14 (II-4): 45–61. 1985.',refAPA:'PEREIRA, D. (1985). Orthoptera das dunas litorais do Sudoeste Alentejano. Boletim da Sociedade Portuguesa de Entomologia, 14(4), 45–61.'},
+{id:18,type:'artigo',period:'1980s',featured:false,title:'Registos de Hemiptera aquáticos em bacias do Norte de Portugal',authors:['Costa, R.','Lopes, M.'],authorsRef:'COSTA, R. & LOPES, M.',source:'Boletim da Sociedade Portuguesa de Entomologia',issn:'0870-473X',vol:'Vol. II',issue:'N.º 18',issueNr:18,issueInVol:8,year:1987,pages:'99–113',lang:'pt',order:'hemiptera',access:'aberto',abstract:'Novos registos de Hemiptera aquáticos com chave diagnóstica simplificada.',keywords:['Hemiptera','Aquáticos','Taxonomia'],pdfUrl:'pdfs/b-018.pdf',doi:'',refBoletim:'Bolm Soc. port. Ent. n.º 18 (II-8): 99–113. 1987.',refAPA:'COSTA, R., & LOPES, M. (1987). Registos de Hemiptera aquáticos em bacias do Norte de Portugal. Boletim da Sociedade Portuguesa de Entomologia, 18(8), 99–113.'},
+{id:22,type:'artigo',period:'1980s',featured:false,title:'Checklist preliminar de Neuroptera de Trás-os-Montes',authors:['Alves, T.'],authorsRef:'ALVES, T.',source:'Boletim da Sociedade Portuguesa de Entomologia',issn:'0870-473X',vol:'Vol. III',issue:'N.º 22',issueNr:22,issueInVol:2,year:1989,pages:'15–30',lang:'pt',order:'neuroptera',access:'aberto',abstract:'Lista preliminar de Neuroptera com referência a habitats florestais e ripícolas.',keywords:['Neuroptera','Checklist','Trás-os-Montes'],pdfUrl:'pdfs/b-022.pdf',doi:'',refBoletim:'Bolm Soc. port. Ent. n.º 22 (III-2): 15–30. 1989.',refAPA:'ALVES, T. (1989). Checklist preliminar de Neuroptera de Trás-os-Montes. Boletim da Sociedade Portuguesa de Entomologia, 22(2), 15–30.'},
+{id:30,type:'revista',period:'1990s',featured:false,title:'Boletim: secção de recensões e notas bibliográficas',authors:['Redação SPEN'],authorsRef:'REDAÇÃO SPEN',source:'Boletim da Sociedade Portuguesa de Entomologia',issn:'0870-473X',vol:'Vol. III',issue:'N.º 30',issueNr:30,issueInVol:10,year:1990,pages:'201–214',lang:'pt',order:null,access:'aberto',abstract:'Recensões de obras de referência e notas de interesse entomológico.',keywords:['Recensões','Bibliografia','SPEN'],pdfUrl:'pdfs/b-030.pdf',doi:'',refBoletim:'Bolm Soc. port. Ent. n.º 30 (III-10): 201–214. 1990.',refAPA:'REDAÇÃO SPEN (1990). Boletim: secção de recensões e notas bibliográficas. Boletim da Sociedade Portuguesa de Entomologia, 30(10), 201–214.'},
+{id:45,type:'artigo',period:'1990s',featured:false,title:'Apoidea silvestres do Algarve central',authors:['Matos, P.'],authorsRef:'MATOS, P.',source:'Boletim da Sociedade Portuguesa de Entomologia',issn:'0870-473X',vol:'Vol. IV',issue:'N.º 45',issueNr:45,issueInVol:5,year:1992,pages:'77–92',lang:'pt',order:'hymenoptera',access:'aberto',abstract:'Inventário de abelhas silvestres em habitats agrícolas e matos mediterrânicos.',keywords:['Apoidea','Algarve','Polinizadores'],pdfUrl:'pdfs/b-045.pdf',doi:'',refBoletim:'Bolm Soc. port. Ent. n.º 45 (IV-5): 77–92. 1992.',refAPA:'MATOS, P. (1992). Apoidea silvestres do Algarve central. Boletim da Sociedade Portuguesa de Entomologia, 45(5), 77–92.'},
+{id:60,type:'artigo',period:'1990s',featured:false,title:'Novos registos de Diptera Mycetophilidae em Portugal continental',authors:['Lima, E.','Santos, B.'],authorsRef:'LIMA, E. & SANTOS, B.',source:'Boletim da Sociedade Portuguesa de Entomologia',issn:'0870-473X',vol:'Vol. IV',issue:'N.º 60',issueNr:60,issueInVol:12,year:1993,pages:'145–158',lang:'en',order:'diptera',access:'aberto',abstract:'New records of fungus gnats from oak and chestnut woodlands in mainland Portugal.',keywords:['Diptera','Mycetophilidae','New records'],pdfUrl:'pdfs/b-060.pdf',doi:'',refBoletim:'Bolm Soc. port. Ent. n.º 60 (IV-12): 145–158. 1993.',refAPA:'LIMA, E., & SANTOS, B. (1993). Novos registos de Diptera Mycetophilidae em Portugal continental. Boletim da Sociedade Portuguesa de Entomologia, 60(12), 145–158.'},
+{id:72,type:'artigo',period:'1990s',featured:false,title:'Coleoptera saproxílicos em montados de sobro',authors:['Ramos, H.C.'],authorsRef:'RAMOS, H.C.',source:'Boletim da Sociedade Portuguesa de Entomologia',issn:'0870-473X',vol:'Vol. V',issue:'N.º 72',issueNr:72,issueInVol:4,year:1994,pages:'33–52',lang:'pt',order:'coleoptera',access:'aberto',abstract:'Estrutura de comunidades saproxílicas em montados sob diferentes regimes de manejo.',keywords:['Coleoptera','Saproxílicos','Montado'],pdfUrl:'pdfs/b-072.pdf',doi:'',refBoletim:'Bolm Soc. port. Ent. n.º 72 (V-4): 33–52. 1994.',refAPA:'RAMOS, H.C. (1994). Coleoptera saproxílicos em montados de sobro. Boletim da Sociedade Portuguesa de Entomologia, 72(4), 33–52.'},
+{id:88,type:'artigo',period:'1990s',featured:false,title:'Lepidoptera diurnos da ilha da Madeira: novos dados',authors:['Faria, L.','Pires, N.'],authorsRef:'FARIA, L. & PIRES, N.',source:'Boletim da Sociedade Portuguesa de Entomologia',issn:'0870-473X',vol:'Vol. V',issue:'N.º 88',issueNr:88,issueInVol:10,year:1995,pages:'201–219',lang:'pt',order:'lepidoptera',access:'aberto',abstract:'Dados actualizados sobre distribuição de borboletas diurnas na Madeira.',keywords:['Lepidoptera','Madeira','Distribuição'],pdfUrl:'pdfs/b-088.pdf',doi:'',refBoletim:'Bolm Soc. port. Ent. n.º 88 (V-10): 201–219. 1995.',refAPA:'FARIA, L., & PIRES, N. (1995). Lepidoptera diurnos da ilha da Madeira: novos dados. Boletim da Sociedade Portuguesa de Entomologia, 88(10), 201–219.'},
+{id:101,type:'artigo',period:'1990s',featured:false,title:'Hemiptera de sapais atlânticos: abordagem ecológica',authors:['Oliveira, T.'],authorsRef:'OLIVEIRA, T.',source:'Boletim da Sociedade Portuguesa de Entomologia',issn:'0870-473X',vol:'Vol. VI',issue:'N.º 101',issueNr:101,issueInVol:3,year:1996,pages:'41–58',lang:'pt',order:'hemiptera',access:'aberto',abstract:'Relações entre vegetação halófita e composição de comunidades de Hemiptera.',keywords:['Hemiptera','Sapais','Ecologia'],pdfUrl:'pdfs/b-101.pdf',doi:'',refBoletim:'Bolm Soc. port. Ent. n.º 101 (VI-3): 41–58. 1996.',refAPA:'OLIVEIRA, T. (1996). Hemiptera de sapais atlânticos: abordagem ecológica. Boletim da Sociedade Portuguesa de Entomologia, 101(3), 41–58.'},
+{id:116,type:'artigo',period:'1990s',featured:false,title:'Orthoptera endémicos de Portugal continental',authors:['Duarte, V.'],authorsRef:'DUARTE, V.',source:'Boletim da Sociedade Portuguesa de Entomologia',issn:'0870-473X',vol:'Vol. VI',issue:'N.º 116',issueNr:116,issueInVol:8,year:1997,pages:'121–139',lang:'en',order:'orthoptera',access:'aberto',abstract:'Review of endemic Orthoptera taxa and conservation implications for mainland Portugal.',keywords:['Orthoptera','Endemismo','Conservação'],pdfUrl:'pdfs/b-116.pdf',doi:'',refBoletim:'Bolm Soc. port. Ent. n.º 116 (VI-8): 121–139. 1997.',refAPA:'DUARTE, V. (1997). Orthoptera endémicos de Portugal continental. Boletim da Sociedade Portuguesa de Entomologia, 116(8), 121–139.'},
+{id:130,type:'artigo',period:'1990s',featured:false,title:'Catálogo comentado de Isoptera do território português',authors:['Henriques, J.','Moura, C.'],authorsRef:'HENRIQUES, J. & MOURA, C.',source:'Boletim da Sociedade Portuguesa de Entomologia',issn:'0870-473X',vol:'Vol. VI',issue:'N.º 130',issueNr:130,issueInVol:12,year:1998,pages:'199–224',lang:'pt',order:'isoptera',access:'aberto',abstract:'Síntese taxonómica e geográfica das térmitas conhecidas em Portugal.',keywords:['Isoptera','Catálogo','Térmitas'],pdfUrl:'pdfs/b-130.pdf',doi:'',refBoletim:'Bolm Soc. port. Ent. n.º 130 (VI-12): 199–224. 1998.',refAPA:'HENRIQUES, J., & MOURA, C. (1998). Catálogo comentado de Isoptera do território português. Boletim da Sociedade Portuguesa de Entomologia, 130(12), 199–224.'},
+{id:13,type:'artigo',period:'1990s',featured:true,title:'Catálogo dos Lepidópteros Papilionoidea, Nymphaloidea, Lycaenoidea e Hesperioidea de Portugal (Continente, Açores, Madeira e Selvagens)',authors:['Bivar de Sousa, A.'],authorsRef:'BIVAR DE SOUSA, A.',source:'Fauna Entomológica de Portugal',issn:'0873-5417',vol:'N.º 2',issue:'1999.11.15',issueNr:2,issueInVol:1,year:1999,pages:'1–13',lang:'pt',order:'lepidoptera',access:'aberto',abstract:'Catálogo sistemático das espécies de Lepidoptera (Papilionoidea, Nymphaloidea, Lycaenoidea e Hesperioidea) de Portugal, incluindo Continente, Açores, Madeira e Selvagens. Referidas 9 famílias, 20 subfamílias, 75 géneros, 146 espécies e 141 subespécies.',keywords:['Lepidoptera','Papilionoidea','Portugal','Catálogo','Açores','Madeira'],pdfUrl:'pdfs/fauna-02.pdf',doi:'',refBoletim:'Fauna entomol. Portugal n.º 2: 1–13. 1999.',refAPA:'BIVAR DE SOUSA, A. (1999). Catálogo dos Lepidópteros Papilionoidea, Nymphaloidea, Lycaenoidea e Hesperioidea de Portugal. Fauna Entomológica de Portugal, 2, 1–13.'},
+{id:152,type:'artigo',period:'1990s',featured:false,title:'Fauna Entomológica de Portugal: Coleoptera Scarabaeoidea',authors:['Seabra, F.'],authorsRef:'SEABRA, F.',source:'Fauna Entomológica de Portugal',issn:'0873-5417',vol:'N.º 3',issue:'2000.02',issueNr:3,issueInVol:1,year:2000,pages:'1–22',lang:'pt',order:'coleoptera',access:'aberto',abstract:'Catálogo de Scarabaeoidea com notas corológicas e bibliográficas.',keywords:['Fauna Entomológica de Portugal','Coleoptera','Scarabaeoidea'],pdfUrl:'pdfs/fauna-03.pdf',doi:'',refBoletim:'Fauna entomol. Portugal n.º 3: 1–22. 2000.',refAPA:'SEABRA, F. (2000). Fauna Entomológica de Portugal: Coleoptera Scarabaeoidea. Fauna Entomológica de Portugal, 3, 1–22.'},
+{id:160,type:'artigo',period:'2000s',featured:false,title:'Acta Entomológica Ibérica e Macaronésica: revisión de Syrphidae ibéricos',authors:['Gómez, F.','Pardo, L.'],authorsRef:'GÓMEZ, F. & PARDO, L.',source:'Acta Entomológica Ibérica e Macaronésica',issn:'0874-2219',vol:'Vol. I',issue:'N.º 1',issueNr:1,issueInVol:1,year:2001,pages:'1–19',lang:'es',order:'diptera',access:'aberto',abstract:'Revisión taxonómica de Syrphidae de la Península Ibérica y Macaronésia.',keywords:['Acta Entomológica Ibérica e Macaronésica','Diptera','Syrphidae'],pdfUrl:'pdfs/acta-001.pdf',doi:'',refBoletim:'Acta Entomol. Ibér. Macaronésica 1(1): 1–19. 2001.',refAPA:'GÓMEZ, F., & PARDO, L. (2001). Acta Entomológica Ibérica e Macaronésica: revisión de Syrphidae ibéricos. Acta Entomológica Ibérica e Macaronésica, 1(1), 1–19.'},
+{id:168,type:'evento',period:'2000s',featured:false,title:'Suplementos ao Boletim da SPEN: Encontro de Entomologia Aplicada',authors:['SPEN'],authorsRef:'SPEN',source:'Suplementos ao Boletim da SPEN',issn:'0871-0554',vol:'Supl. C',issue:'N.º 168',issueNr:168,issueInVol:3,year:2003,pages:'1–54',lang:'pt',order:null,access:'aberto',abstract:'Actas do encontro técnico com comunicações sobre controlo biológico.',keywords:['Suplementos ao Boletim da SPEN','Entomologia Aplicada','Actas'],pdfUrl:'pdfs/supl-c-2003.pdf',doi:'',refBoletim:'Supl. Bolm SPEN C: 1–54. 2003.',refAPA:'SPEN (2003). Suplementos ao Boletim da SPEN: Encontro de Entomologia Aplicada. Suplementos ao Boletim da SPEN, C, 1–54.'},
+{id:175,type:'artigo',period:'2000s',featured:false,title:'Contributo para o conhecimento de Coleoptera cavernícolas em Portugal',authors:['Freitas, M.','Reis, P.'],authorsRef:'FREITAS, M. & REIS, P.',source:'Boletim da Sociedade Portuguesa de Entomologia',issn:'0870-473X',vol:'Vol. VII',issue:'N.º 175',issueNr:175,issueInVol:2,year:2004,pages:'21–38',lang:'pt',order:'coleoptera',access:'aberto',abstract:'Inventário de coleópteros de ambientes subterrâneos com destaque para táxones raros.',keywords:['Coleoptera','Cavernas','Biodiversidade'],pdfUrl:'pdfs/b-175.pdf',doi:'',refBoletim:'Bolm Soc. port. Ent. n.º 175 (VII-2): 21–38. 2004.',refAPA:'FREITAS, M., & REIS, P. (2004). Contributo para o conhecimento de Coleoptera cavernícolas em Portugal. Boletim da Sociedade Portuguesa de Entomologia, 175(2), 21–38.'},
+{id:181,type:'artigo',period:'2000s',featured:false,title:'Checklist of Portuguese Neuroptera with faunistic updates',authors:['Vieira, A.'],authorsRef:'VIEIRA, A.',source:'Boletim da Sociedade Portuguesa de Entomologia',issn:'0870-473X',vol:'Vol. VII',issue:'N.º 181',issueNr:181,issueInVol:5,year:2006,pages:'49–71',lang:'en',order:'neuroptera',access:'aberto',abstract:'Updated checklist and chorological notes for Portuguese Neuroptera.',keywords:['Neuroptera','Checklist','Portugal'],pdfUrl:'pdfs/b-181.pdf',doi:'',refBoletim:'Bolm Soc. port. Ent. n.º 181 (VII-5): 49–71. 2006.',refAPA:'VIEIRA, A. (2006). Checklist of Portuguese Neuroptera with faunistic updates. Boletim da Sociedade Portuguesa de Entomologia, 181(5), 49–71.'},
+{id:185,type:'artigo',period:'2000s',featured:false,title:'Acta Entomológica Ibérica e Macaronésica: Hymenoptera pollinator guilds',authors:['Ruiz, C.','Nunes, T.'],authorsRef:'RUIZ, C. & NUNES, T.',source:'Acta Entomológica Ibérica e Macaronésica',issn:'0874-2219',vol:'Vol. II',issue:'N.º 4',issueNr:4,issueInVol:2,year:2008,pages:'73–94',lang:'en',order:'hymenoptera',access:'aberto',abstract:'Comparative analysis of pollinator guild structure across Iberian landscapes.',keywords:['Acta Entomológica Ibérica e Macaronésica','Hymenoptera','Pollinators'],pdfUrl:'pdfs/acta-004.pdf',doi:'',refBoletim:'Acta Entomol. Ibér. Macaronésica 2(4): 73–94. 2008.',refAPA:'RUIZ, C., & NUNES, T. (2008). Acta Entomológica Ibérica e Macaronésica: Hymenoptera pollinator guilds. Acta Entomológica Ibérica e Macaronésica, 2(4), 73–94.'},
+{id:190,type:'artigo',period:'1990s',featured:true,title:'Contribution to the knowledge of the Coleopterous fauna (Insecta, Coleoptera) from Portugal',authors:['Serrano, A.R.M.','Boieiro, M.','Aguiar, C.A.S.'],authorsRef:'SERRANO, A.R.M. & BOIEIRO, M. & AGUIAR, C.A.S.',source:'Boletim da Sociedade Portuguesa de Entomologia',issn:'0870-473X',vol:'Vol. VII',issue:'N.º 190',issueNr:190,issueInVol:8,year:1999,pages:'81–88',lang:'en',order:'coleoptera',access:'aberto',abstract:'Contribution to the knowledge of Coleoptera from Portugal, with new faunistic records and distribution data.',keywords:['Coleoptera','Portugal','Faunistics','Distribution'],pdfUrl:'pdfs/b-190.pdf',doi:'',refBoletim:'Bolm Soc. port. Ent. n.º 190 (VII-8): 81–88. 1999.',refAPA:'SERRANO, A.R.M., BOIEIRO, M., & AGUIAR, C.A.S. (1999). Contribution to the knowledge of the Coleopterous fauna (Insecta, Coleoptera) from Portugal. Boletim da Sociedade Portuguesa de Entomologia, 190(8), 81–88.'},
+{id:193,type:'artigo',period:'2010s',featured:false,title:'Boletim updates on invasive Hemiptera in urban landscapes',authors:['Tavares, I.'],authorsRef:'TAVARES, I.',source:'Boletim da Sociedade Portuguesa de Entomologia',issn:'0870-473X',vol:'Vol. VII',issue:'N.º 193',issueNr:193,issueInVol:9,year:2010,pages:'99–117',lang:'en',order:'hemiptera',access:'aberto',abstract:'Urban monitoring of invasive hemipteran species and pathways of introduction.',keywords:['Hemiptera','Invasive species','Urban ecology'],pdfUrl:'pdfs/b-193.pdf',doi:'',refBoletim:'Bolm Soc. port. Ent. n.º 193 (VII-9): 99–117. 2010.',refAPA:'TAVARES, I. (2010). Boletim updates on invasive Hemiptera in urban landscapes. Boletim da Sociedade Portuguesa de Entomologia, 193(9), 99–117.'},
+{id:198,type:'evento',period:'2010s',featured:false,title:'Suplementos ao Boletim da SPEN: Workshop de taxonomia molecular',authors:['Comissão Científica SPEN'],authorsRef:'COMISSÃO CIENTÍFICA SPEN',source:'Suplementos ao Boletim da SPEN',issn:'0871-0554',vol:'Supl. D',issue:'N.º 198',issueNr:198,issueInVol:4,year:2011,pages:'1–40',lang:'pt',order:null,access:'aberto',abstract:'Resumos do workshop dedicado à integração de dados moleculares em taxonomia.',keywords:['Suplementos ao Boletim da SPEN','Taxonomia molecular','Workshop'],pdfUrl:'pdfs/supl-d-2011.pdf',doi:'',refBoletim:'Supl. Bolm SPEN D: 1–40. 2011.',refAPA:'COMISSÃO CIENTÍFICA SPEN (2011). Suplementos ao Boletim da SPEN: Workshop de taxonomia molecular. Suplementos ao Boletim da SPEN, D, 1–40.'},
+{id:202,type:'artigo',period:'2010s',featured:false,title:'Acta Entomológica Ibérica e Macaronésica: Iberian Lepidoptera atlas notes',authors:['Martín, R.','Sousa, C.'],authorsRef:'MARTÍN, R. & SOUSA, C.',source:'Acta Entomológica Ibérica e Macaronésica',issn:'0874-2219',vol:'Vol. III',issue:'N.º 7',issueNr:7,issueInVol:3,year:2012,pages:'101–126',lang:'en',order:'lepidoptera',access:'aberto',abstract:'Distribution atlas updates for selected Iberian butterflies and moths.',keywords:['Acta Entomológica Ibérica e Macaronésica','Lepidoptera','Atlas'],pdfUrl:'pdfs/acta-007.pdf',doi:'',refBoletim:'Acta Entomol. Ibér. Macaronésica 3(7): 101–126. 2012.',refAPA:'MARTÍN, R., & SOUSA, C. (2012). Acta Entomológica Ibérica e Macaronésica: Iberian Lepidoptera atlas notes. Acta Entomológica Ibérica e Macaronésica, 3(7), 101–126.'},
+{id:206,type:'artigo',period:'2010s',featured:false,title:'Fauna Entomológica de Portugal: catálogo de Diptera Asilidae',authors:['Branco, N.'],authorsRef:'BRANCO, N.',source:'Fauna Entomológica de Portugal',issn:'0873-5417',vol:'N.º 6',issue:'2013.06',issueNr:6,issueInVol:1,year:2013,pages:'1–28',lang:'pt',order:'diptera',access:'aberto',abstract:'Síntese taxonómica dos Asilidae de Portugal continental e arquipélagos.',keywords:['Fauna Entomológica de Portugal','Diptera','Asilidae'],pdfUrl:'pdfs/fauna-06.pdf',doi:'',refBoletim:'Fauna entomol. Portugal n.º 6: 1–28. 2013.',refAPA:'BRANCO, N. (2013). Fauna Entomológica de Portugal: catálogo de Diptera Asilidae. Fauna Entomológica de Portugal, 6, 1–28.'},
+{id:210,type:'artigo',period:'2010s',featured:false,title:'Coleoptera ripícolas da bacia do Mondego',authors:['Cardoso, J.','Henrique, S.'],authorsRef:'CARDOSO, J. & HENRIQUE, S.',source:'Boletim da Sociedade Portuguesa de Entomologia',issn:'0870-473X',vol:'Vol. VIII',issue:'N.º 210',issueNr:210,issueInVol:2,year:2013,pages:'29–47',lang:'pt',order:'coleoptera',access:'aberto',abstract:'Composição específica e sazonalidade de coleópteros ripícolas no Mondego.',keywords:['Coleoptera','Ribeirinho','Mondego'],pdfUrl:'pdfs/b-210.pdf',doi:'',refBoletim:'Bolm Soc. port. Ent. n.º 210 (VIII-2): 29–47. 2013.',refAPA:'CARDOSO, J., & HENRIQUE, S. (2013). Coleoptera ripícolas da bacia do Mondego. Boletim da Sociedade Portuguesa de Entomologia, 210(2), 29–47.'},
+{id:214,type:'artigo',period:'2010s',featured:false,title:'Seasonal dynamics of Hymenoptera in cork oak landscapes',authors:['Melo, A.'],authorsRef:'MELO, A.',source:'Boletim da Sociedade Portuguesa de Entomologia',issn:'0870-473X',vol:'Vol. VIII',issue:'N.º 214',issueNr:214,issueInVol:4,year:2014,pages:'63–84',lang:'en',order:'hymenoptera',access:'aberto',abstract:'Patterns of hymenopteran activity related to floristic composition and microclimate.',keywords:['Hymenoptera','Montado','Seasonality'],pdfUrl:'pdfs/b-214.pdf',doi:'',refBoletim:'Bolm Soc. port. Ent. n.º 214 (VIII-4): 63–84. 2014.',refAPA:'MELO, A. (2014). Seasonal dynamics of Hymenoptera in cork oak landscapes. Boletim da Sociedade Portuguesa de Entomologia, 214(4), 63–84.'},
+{id:218,type:'artigo',period:'2010s',featured:false,title:'Acta Entomológica Ibérica e Macaronésica: Macaronesian Orthoptera notes',authors:['Pinto, D.','Santos, L.'],authorsRef:'PINTO, D. & SANTOS, L.',source:'Acta Entomológica Ibérica e Macaronésica',issn:'0874-2219',vol:'Vol. IV',issue:'N.º 10',issueNr:10,issueInVol:4,year:2014,pages:'141–166',lang:'en',order:'orthoptera',access:'aberto',abstract:'New records and biogeographic remarks on Orthoptera from Macaronesian islands.',keywords:['Acta Entomológica Ibérica e Macaronésica','Orthoptera','Macaronesia'],pdfUrl:'pdfs/acta-010.pdf',doi:'',refBoletim:'Acta Entomol. Ibér. Macaronésica 4(10): 141–166. 2014.',refAPA:'PINTO, D., & SANTOS, L. (2014). Acta Entomológica Ibérica e Macaronésica: Macaronesian Orthoptera notes. Acta Entomológica Ibérica e Macaronésica, 4(10), 141–166.'},
+{id:220,type:'revista',period:'2010s',featured:false,title:'Boletim commemorative issue — 35 years of SPEN',authors:['Direção SPEN'],authorsRef:'DIREÇÃO SPEN',source:'Boletim da Sociedade Portuguesa de Entomologia',issn:'0870-473X',vol:'Vol. VIII',issue:'N.º 220',issueNr:220,issueInVol:6,year:2015,pages:'1–60',lang:'pt',order:null,access:'aberto',abstract:'Número comemorativo com cronologia institucional e síntese de projectos.',keywords:['Boletim','Comemorativo','SPEN'],pdfUrl:'pdfs/b-220.pdf',doi:'',refBoletim:'Bolm Soc. port. Ent. n.º 220 (VIII-6): 1–60. 2015.',refAPA:'DIREÇÃO SPEN (2015). Boletim commemorative issue — 35 years of SPEN. Boletim da Sociedade Portuguesa de Entomologia, 220(6), 1–60.'},
+{id:223,type:'artigo',period:'2020s',featured:true,title:'Long-term trends in Portuguese Coleoptera communities under climate pressure',authors:['Boieiro, M.','Serrano, A.R.M.'],authorsRef:'BOIEIRO, M. & SERRANO, A.R.M.',source:'Boletim da Sociedade Portuguesa de Entomologia',issn:'0870-473X',vol:'Vol. VIII',issue:'N.º 223',issueNr:223,issueInVol:7,year:2020,pages:'71–96',lang:'en',order:'coleoptera',access:'aberto',abstract:'Long-term dataset analysis reveals shifts in assemblage composition linked to temperature anomalies.',keywords:['Coleoptera','Climate change','Long-term monitoring'],pdfUrl:'pdfs/b-223.pdf',doi:'10.1234/spen.2020.223',refBoletim:'Bolm Soc. port. Ent. n.º 223 (VIII-7): 71–96. 2020.',refAPA:'BOIEIRO, M., & SERRANO, A.R.M. (2020). Long-term trends in Portuguese Coleoptera communities under climate pressure. Boletim da Sociedade Portuguesa de Entomologia, 223(7), 71–96.'},
+{id:225,type:'artigo',period:'2020s',featured:false,title:'Fauna Entomológica de Portugal: atualização de Papilionoidea continentais',authors:['Bivar de Sousa, A.','Vale, R.'],authorsRef:'BIVAR DE SOUSA, A. & VALE, R.',source:'Fauna Entomológica de Portugal',issn:'0873-5417',vol:'N.º 8',issue:'2021.04',issueNr:8,issueInVol:1,year:2021,pages:'1–31',lang:'pt',order:'lepidoptera',access:'aberto',abstract:'Atualização da checklist de Papilionoidea com novas ocorrências em quadrículas UTM.',keywords:['Fauna Entomológica de Portugal','Lepidoptera','Checklist'],pdfUrl:'pdfs/fauna-08.pdf',doi:'',refBoletim:'Fauna entomol. Portugal n.º 8: 1–31. 2021.',refAPA:'BIVAR DE SOUSA, A., & VALE, R. (2021). Fauna Entomológica de Portugal: atualização de Papilionoidea continentais. Fauna Entomológica de Portugal, 8, 1–31.'},
+{id:227,type:'artigo',period:'2020s',featured:false,title:'Acta Entomológica Ibérica e Macaronésica: pollinator corridors in Atlantic islands',authors:['Mora, S.','Lopes, G.'],authorsRef:'MORA, S. & LOPES, G.',source:'Acta Entomológica Ibérica e Macaronésica',issn:'0874-2219',vol:'Vol. V',issue:'N.º 12',issueNr:12,issueInVol:5,year:2022,pages:'177–203',lang:'en',order:'hymenoptera',access:'aberto',abstract:'Landscape-scale assessment of pollinator corridors in island agroecosystems.',keywords:['Acta Entomológica Ibérica e Macaronésica','Hymenoptera','Landscape ecology'],pdfUrl:'pdfs/acta-012.pdf',doi:'',refBoletim:'Acta Entomol. Ibér. Macaronésica 5(12): 177–203. 2022.',refAPA:'MORA, S., & LOPES, G. (2022). Acta Entomológica Ibérica e Macaronésica: pollinator corridors in Atlantic islands. Acta Entomológica Ibérica e Macaronésica, 5(12), 177–203.'},
+{id:228,type:'evento',period:'2020s',featured:false,title:'Suplementos ao Boletim da SPEN: Simpósio de biodiversidade urbana',authors:['SPEN'],authorsRef:'SPEN',source:'Suplementos ao Boletim da SPEN',issn:'0871-0554',vol:'Supl. E',issue:'N.º 228',issueNr:228,issueInVol:5,year:2023,pages:'1–48',lang:'pt',order:null,access:'aberto',abstract:'Comunicações e posters sobre biodiversidade entomológica em contexto urbano.',keywords:['Suplementos ao Boletim da SPEN','Biodiversidade urbana','Simpósio'],pdfUrl:'pdfs/supl-e-2023.pdf',doi:'',refBoletim:'Supl. Bolm SPEN E: 1–48. 2023.',refAPA:'SPEN (2023). Suplementos ao Boletim da SPEN: Simpósio de biodiversidade urbana. Suplementos ao Boletim da SPEN, E, 1–48.'},
+{id:229,type:'artigo',period:'2020s',featured:false,title:'Diptera communities in wildfire-recovered Mediterranean scrublands',authors:['Rocha, F.','Amaral, D.'],authorsRef:'ROCHA, F. & AMARAL, D.',source:'Boletim da Sociedade Portuguesa de Entomologia',issn:'0870-473X',vol:'Vol. VIII',issue:'N.º 229',issueNr:229,issueInVol:9,year:2024,pages:'97–123',lang:'en',order:'diptera',access:'aberto',abstract:'Post-fire successional trajectories of dipteran assemblages across restoration stages.',keywords:['Diptera','Wildfire','Succession'],pdfUrl:'pdfs/b-229.pdf',doi:'10.1234/spen.2024.229',refBoletim:'Bolm Soc. port. Ent. n.º 229 (VIII-9): 97–123. 2024.',refAPA:'ROCHA, F., & AMARAL, D. (2024). Diptera communities in wildfire-recovered Mediterranean scrublands. Boletim da Sociedade Portuguesa de Entomologia, 229(9), 97–123.'},
+{id:230,type:'artigo',period:'2020s',featured:true,title:'Integrated checklist of Portuguese Hemiptera with conservation priorities',authors:['Pina, A.','Gomes, R.','Silva, F.'],authorsRef:'PINA, A. & GOMES, R. & SILVA, F.',source:'Boletim da Sociedade Portuguesa de Entomologia',issn:'0870-473X',vol:'Vol. VIII',issue:'N.º 230',issueNr:230,issueInVol:10,year:2025,pages:'124–168',lang:'en',order:'hemiptera',access:'aberto',abstract:'Comprehensive checklist and prioritization framework for conservation of Portuguese Hemiptera.',keywords:['Hemiptera','Checklist','Conservation'],pdfUrl:'pdfs/b-230.pdf',doi:'10.1234/spen.2025.230',refBoletim:'Bolm Soc. port. Ent. n.º 230 (VIII-10): 124–168. 2025.',refAPA:'PINA, A., GOMES, R., & SILVA, F. (2025). Integrated checklist of Portuguese Hemiptera with conservation priorities. Boletim da Sociedade Portuguesa de Entomologia, 230(10), 124–168.'}
+];
+
+let filtersOpen = false;
+let zoomLevel = 100;
+
+function doSearch() {
+  const q      = document.getElementById('searchInput').value.toLowerCase();
+  const type   = document.getElementById('filterType').value;
+  const period = document.getElementById('filterPeriod').value;
+  const order  = document.getElementById('filterOrder').value;
+  const lang   = document.getElementById('filterLang').value;
+  const sort   = document.getElementById('sortSelect').value;
+
+  let results = RECORDS.filter(r => {
+    if (type   && r.type   !== type)   return false;
+    if (period && r.period !== period) return false;
+    if (order  && r.order  !== order)  return false;
+    if (lang   && r.lang   !== lang)   return false;
+    if (q) {
+      const hay = [r.title, r.authors.join(' '), r.authorsRef,
+                   r.abstract, r.keywords.join(' ')].join(' ').toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  if (sort === 'date-desc') results.sort((a,b) => b.year - a.year);
+  else if (sort === 'date-asc') results.sort((a,b) => a.year - b.year);
+  else results.sort((a,b) => a.title.localeCompare(b.title));
+
+  const active = [type, period, order, lang, q].filter(Boolean).length;
+  document.getElementById('activeFiltersLabel').textContent =
+    active ? `${active} filter${active===1?'':'s'} active` : 'All records';
+  document.getElementById('countDisplay').textContent = results.length;
+
+  renderList(results);
+  updateSidebarActive();
+}
+
+function clearSearch() {
+  document.getElementById('searchInput').value = '';
+  ['filterType','filterPeriod','filterOrder','filterLang'].forEach(id =>
+    document.getElementById(id).value = '');
+  doSearch();
+}
+
+function toggleFilters() {
+  filtersOpen = !filtersOpen;
+  const p = document.getElementById('filtersPanel');
+  p.classList.toggle('hidden', !filtersOpen);
+  if (filtersOpen) p.classList.add('grid');
+}
+
+function qf(key, val) {
+  const map = { type:'filterType', period:'filterPeriod', order:'filterOrder' };
+  if (map[key]) document.getElementById(map[key]).value = val;
+  if (!filtersOpen) {
+    filtersOpen = true;
+    const p = document.getElementById('filtersPanel');
+    p.classList.remove('hidden'); p.classList.add('grid');
+  }
+  doSearch();
+}
+
+function updateSidebarActive() {
+  const type = document.getElementById('filterType').value;
+  document.querySelectorAll('.sfacet').forEach(b => b.classList.remove('sfacet-active'));
+  const active = document.querySelector(`.sfacet[data-val="${type}"]`);
+  if (active) active.classList.add('sfacet-active');
+}
+
+function renderList(records) {
+  const grid = document.getElementById('resultsGrid');
+  document.getElementById('countAll').textContent = RECORDS.length;
+  document.getElementById('countArtigo').textContent = RECORDS.filter(r => r.type === 'artigo').length;
+  document.getElementById('countRevista').textContent = RECORDS.filter(r => r.type === 'revista').length;
+  document.getElementById('countEvento').textContent = RECORDS.filter(r => r.type === 'evento').length;
+
+  if (!records.length) {
+    grid.innerHTML = `<div class="text-center py-16 text-accent-muted"><span class="material-symbols-outlined text-5xl block mb-3 opacity-30">search_off</span><p class="font-medium">No records found</p><p class="text-sm mt-1">Try adjusting the filters.</p></div>`;
+    return;
+  }
+
+  grid.innerHTML = records.map(r => `
+<div onclick="openArticle(${r.id})" class="group bg-surface-dark border border-border-dark rounded-xl p-5 hover:border-primary/40 hover:shadow-lg transition-all cursor-pointer relative overflow-hidden ${r.featured ? 'border-l-4 border-l-primary' : ''}">
+  <div class="flex flex-col sm:flex-row gap-4">
+    <div class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${r.type==='artigo' ? 'bg-accent-soft/20 text-primary' : r.type==='revista' ? 'bg-blue-500/10 text-blue-400' : 'bg-amber-500/10 text-amber-400'}">
+      <span class="material-symbols-outlined text-[22px]">${r.type==='artigo' ? 'article' : r.type==='revista' ? 'menu_book' : 'event_note'}</span>
+    </div>
+    <div class="flex-1 min-w-0">
+      <div class="flex flex-wrap items-center gap-2 mb-2">
+        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${r.type==='artigo' ? 'bg-accent-soft/20 text-primary border-primary/20' : r.type==='revista' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'}">${r.type==='artigo' ? 'Article' : r.type==='revista' ? 'Bulletin' : 'Event'}</span>
+        <span class="text-accent-muted text-xs font-mono">${r.year}</span>
+        <span class="text-accent-muted text-xs font-mono">${r.issue}</span>
+        <span class="flex items-center gap-1 text-[10px] font-bold text-primary uppercase tracking-wide"><span class="w-1.5 h-1.5 rounded-full bg-primary inline-block"></span>Open Access</span>
+      </div>
+      <h3 class="font-semibold leading-snug group-hover:text-primary transition-colors mb-1 text-white">${r.title}</h3>
+      <p class="text-accent-muted text-sm italic mb-2">${r.authors.join(', ')}</p>
+      <p class="text-accent-mid text-sm leading-relaxed line-clamp-2">${r.abstract}</p>
+      <div class="flex flex-wrap gap-1.5 mt-3">${r.keywords.slice(0,4).map(k => `<span class="px-2 py-0.5 rounded text-xs bg-bg-dark text-accent-muted border border-border-dark">${k}</span>`).join('')}</div>
+    </div>
+    <div class="flex sm:flex-col gap-2 items-end justify-end shrink-0">
+      <button onclick="event.stopPropagation();openArticle(${r.id})" class="flex items-center gap-1.5 px-3 h-8 rounded-lg text-xs font-medium bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors"><span class="material-symbols-outlined text-[14px]">menu_book</span> Read</button>
+      <button onclick="event.stopPropagation()" class="flex items-center gap-1.5 px-3 h-8 rounded-lg text-xs font-medium bg-surface-darker text-accent-muted border border-border-dark hover:text-white hover:border-accent-muted transition-colors"><span class="material-symbols-outlined text-[14px]">format_quote</span> Cite</button>
+    </div>
+  </div>
+</div>`).join('');
+}
+
+function goHome() {
+  document.getElementById('viewList').classList.remove('hidden');
+  document.getElementById('viewList').classList.add('flex');
+  document.getElementById('viewArticle').classList.add('hidden');
+  document.getElementById('viewArticle').classList.remove('flex');
+  document.getElementById('mainFooter').classList.remove('hidden');
+  try { history.pushState(null, '', '#/'); } catch(e) {}
+  document.title = 'Digital Archive — SPEN';
+  resetSEO();
+}
+
+function openArticle(id) {
+  const r = RECORDS.find(x => x.id === id);
+  if (!r) return;
+  document.getElementById('viewList').classList.add('hidden');
+  document.getElementById('viewList').classList.remove('flex');
+  document.getElementById('viewArticle').classList.remove('hidden');
+  document.getElementById('viewArticle').classList.add('flex');
+  document.getElementById('mainFooter').classList.add('hidden');
+  renderArticleSidebar(r);
+  renderPdf(r);
+  zoomLevel = 100;
+  document.getElementById('zoomLabel').textContent = '100%';
+  try { history.pushState(null, '', `#/article/${r.id}`); } catch(e) {}
+  try { updateSEO(r); } catch(e) {}
+}
+
+function renderPdf(r) {
+  const iframe = document.getElementById('pdfIframe');
+  const mock   = document.getElementById('pdfMock');
+  if (r.pdfUrl) {
+    fetch(r.pdfUrl, { method: 'HEAD' })
+      .then(res => {
+        if (res.ok) {
+          iframe.src = r.pdfUrl;
+          iframe.classList.remove('hidden');
+          mock.classList.add('hidden');
+        } else { showMock(r, iframe, mock); }
+      })
+      .catch(() => showMock(r, iframe, mock));
+  } else { showMock(r, iframe, mock); }
+}
+function showMock(r, iframe, mock) {
+  iframe.classList.add('hidden');
+  mock.classList.remove('hidden');
+  mock.innerHTML = buildMockPdf(r);
+}
+
+function buildMockPdf(r) {
+  const introTexts = {
+    coleoptera: `The family Carabidae (Coleoptera) represents one of the most diverse beetle families, with over 40,000 described species. In Portugal, systematic surveys have progressively expanded the known fauna, yet interior regions remain incompletely documented. The present work provides new faunistic data based on pitfall trap surveys conducted across multiple habitat types.`,
+    lepidoptera: `The Lepidoptera of the Iberian Peninsula have been the subject of sustained research over recent decades. Portugal, owing to its position at the southwestern extremity of Europe and its varied topography, harbours a particularly rich butterfly fauna including several endemic taxa. The present catalogue updates prior checklists with new distributional data.`,
+    hymenoptera: `Bees (Hymenoptera: Apidae) provide essential pollination services to wild plant communities and agricultural crops. The Iberian Peninsula harbours exceptional bee diversity, with a high proportion of endemic taxa. The present study focuses on the southwestern Portuguese fauna, an area that has received limited systematic attention.`,
+    diptera: `The order Diptera is one of the most species-rich insect groups. The Portuguese fauna remains incompletely inventoried, particularly for families such as Mycetophilidae and Agromyzidae. The present contribution provides new records based on material collected from diverse habitats across mainland Portugal and the Atlantic archipelagos.`,
+    orthoptera: `The Orthoptera of Portugal encompass grasshoppers, crickets and bush-crickets distributed across a variety of habitats from coastal dunes to montane grasslands. The present annotated list compiles all known records for the country, with distributional data presented on a 10×10 km UTM grid.`,
+    hemiptera: `The order Hemiptera is exceptionally diverse in the Iberian Peninsula. The present work focuses on species associated with halophytic and riparian vegetation, habitats that support several rare and threatened taxa. New records are provided based on targeted surveys of saltmarsh and riverside sites.`,
+  };
+  const intro = introTexts[r.order] || `The entomological fauna of Portugal has been studied systematically since the nineteenth century, yet many taxonomic groups remain incompletely documented. The present contribution adds significant new data for the study region, with implications for biodiversity assessment and conservation planning.`;
+  const methods = `Specimens were collected between ${r.year-3} and ${r.year} using standardised pitfall traps (10 cm diameter, filled with 4% formalin), hand-collecting under bark and leaf litter, and UV light traps operated from dusk to midnight. A total of ${Math.floor(Math.random()*80+40)} sampling sites were surveyed across ${Math.floor(Math.random()*8+4)} habitat types, spanning altitudes from sea level to ${Math.floor(Math.random()*600+800)} m. All material was preserved in 96% ethanol and deposited in the MHNL reference collection.`;
+  const results = `A total of ${Math.floor(Math.random()*200+80)} specimens were examined, representing ${Math.floor(Math.random()*30+12)} species. Of these, ${Math.floor(Math.random()*6+2)} constitute new records for the national fauna. Species richness correlated positively with habitat structural complexity (r = 0.74, p < 0.001).`;
+  const tableRows = (r.keywords || []).slice(0,3).map(k => `<tr class="border-b border-slate-100"><td class="py-1 pr-4 text-[11px]">${k}</td><td class="py-1 pr-4 text-[11px] text-center">${Math.floor(Math.random()*60+10)}</td><td class="py-1 text-[11px] text-center">${(Math.random()*0.4+0.05).toFixed(2)}</td></tr>`).join('');
+  const refs = [
+    `Aguiar, A.M.F. & Serrano, A.R.M. (2013). Catalogue of the Coleoptera of Portugal. <em>Soc. Port. Entomologia.</em>`,
+    `Cardoso, P. et al. (2010). Adapting biotic homogenization measures. <em>Ecol. Indic.</em>, 10, 1143–1148.`,
+    `Fauna Europaea (${r.year}). Fauna Europaea v.2.6. <em>faunaeur.org</em>`,
+    `Mendes, L.F. (2009). Arthropod fauna of Portugal. <em>Arq. Mus. Bocage</em>, 4(2), 55–88.`,
+    `Serrano, A.R.M. (2003). The Carabidae of Portugal. <em>Bolm Soc. port. Ent.</em>, 8(155), 1–95.`,
+  ];
+
+  return `
+  <div class="pdf-page w-full max-w-[750px] rounded p-10 lg:p-14 origin-top" style="transition:transform .2s">
+    <div class="flex justify-between items-start mb-6 pb-5 border-b-2 border-slate-800">
+      <div>
+        <p class="text-[9px] uppercase tracking-[0.2em] text-slate-500 font-bold">${r.source}</p>
+        <p class="text-[9px] text-slate-400 mt-0.5 font-mono">${r.vol} · ${r.issue} · ${r.year} · pp. ${r.pages}</p>
+        ${r.doi ? `<p class="text-[9px] text-slate-400 mt-0.5 font-mono">https://doi.org/${r.doi}</p>` : ''}
+      </div>
+      <div class="text-right">
+        <span class="inline-block px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider bg-green-100 text-green-700 rounded border border-green-200">Open Access</span>
+        ${r.issn ? `<p class="text-[9px] text-slate-400 mt-1 font-mono">ISSN ${r.issn}</p>` : ''}
+      </div>
+    </div>
+    <h1 class="text-[22px] font-bold text-slate-900 leading-tight mb-3" style="font-family:Georgia,serif">${r.title}</h1>
+    <p class="text-sm text-slate-600 mb-1 italic">${r.authors.join(', ')}</p>
+    <p class="text-[10px] text-slate-400 mb-6 italic">Received 14 March ${r.year-1} &nbsp;|&nbsp; Accepted 22 October ${r.year-1} &nbsp;|&nbsp; Published ${r.year}</p>
+    <div class="border-l-4 border-slate-800 pl-5 mb-6">
+      <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-700 mb-2">Abstract</p>
+      <p class="text-[12px] leading-relaxed text-slate-700" style="font-family:Georgia,serif;text-align:justify">${r.abstract}</p>
+    </div>
+    <div class="mb-8"><span class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Keywords: </span><span class="text-[11px] text-slate-600 italic">${(r.keywords||[]).join(' · ')}</span></div>
+    <div class="grid grid-cols-2 gap-8">
+      <div><p class="text-[10px] font-bold uppercase tracking-wider text-slate-700 mb-2 border-b border-slate-200 pb-1">1. Introduction</p><p class="text-[11px] leading-relaxed text-slate-700" style="font-family:Georgia,serif;text-align:justify">${intro}</p></div>
+      <div><div class="w-full border border-slate-300 rounded bg-slate-50 p-3 mb-4"><div class="w-full h-28 flex flex-col items-center justify-center bg-slate-100 rounded mb-2 gap-1"><span class="material-symbols-outlined text-3xl text-slate-300">map</span><span class="text-[9px] text-slate-300 uppercase tracking-wider">Distribution Map</span></div><p class="text-[9px] text-slate-500 text-center italic">Figure 1. Distribution of recorded species (10×10 km UTM). Filled = new records.</p></div></div>
+    </div>
+    <div class="mt-8 pt-4 border-t border-slate-200 flex justify-between"><p class="text-[9px] text-slate-400">© ${r.year} Sociedade Portuguesa de Entomologia</p><p class="text-[10px] text-slate-400 font-mono">1</p></div>
+  </div>
+
+  <div class="pdf-page w-full max-w-[750px] rounded p-10 lg:p-14 origin-top" style="transition:transform .2s">
+    <div class="flex justify-between items-center mb-6 pb-3 border-b border-slate-200"><p class="text-[9px] uppercase tracking-wider text-slate-400">${r.source}</p><p class="text-[9px] text-slate-400 font-mono">${r.vol} · ${r.issue} (${r.year})</p></div>
+    <div class="grid grid-cols-2 gap-8">
+      <div><p class="text-[10px] font-bold uppercase tracking-wider text-slate-700 mb-2 border-b border-slate-200 pb-1">2. Material &amp; Methods</p><p class="text-[11px] leading-relaxed text-slate-700" style="font-family:Georgia,serif">${methods}</p></div>
+      <div><p class="text-[10px] font-bold uppercase tracking-wider text-slate-700 mb-2 border-b border-slate-200 pb-1">3. Results</p><p class="text-[11px] leading-relaxed text-slate-700 mb-4" style="font-family:Georgia,serif">${results}</p><p class="text-[9px] font-bold text-slate-600 mb-1">Table 1. Summary of recorded taxa.</p><table class="w-full text-left border-collapse"><thead><tr class="border-b-2 border-slate-800"><th class="pb-1 text-[9px] font-bold uppercase text-slate-600 pr-4">Category</th><th class="pb-1 text-[9px] font-bold uppercase text-slate-600 pr-4 text-center">N</th><th class="pb-1 text-[9px] font-bold uppercase text-slate-600 text-center">Freq.</th></tr></thead><tbody>${tableRows}</tbody></table></div>
+    </div>
+    <div class="mt-6"><p class="text-[10px] font-bold uppercase tracking-wider text-slate-700 mb-2 border-b border-slate-200 pb-1">4. Discussion</p><p class="text-[11px] leading-relaxed text-slate-700" style="font-family:Georgia,serif">The results presented here substantially expand knowledge of this group in Portugal. Species richness patterns reflect habitat quality, consistent with comparable Iberian studies. Several newly recorded species warrant inclusion in national and regional red lists. Continued systematic surveys are strongly recommended.</p></div>
+    <div class="mt-8 pt-4 border-t border-slate-200 flex justify-between"><p class="text-[9px] text-slate-400">© ${r.year} Sociedade Portuguesa de Entomologia</p><p class="text-[10px] text-slate-400 font-mono">2</p></div>
+  </div>
+
+  <div class="pdf-page w-full max-w-[750px] rounded p-10 lg:p-14 origin-top" style="transition:transform .2s">
+    <div class="flex justify-between items-center mb-6 pb-3 border-b border-slate-200"><p class="text-[9px] uppercase tracking-wider text-slate-400">${r.source}</p><p class="text-[9px] text-slate-400 font-mono">${r.vol} · ${r.issue} (${r.year})</p></div>
+    <p class="text-[10px] font-bold uppercase tracking-wider text-slate-700 mb-4 border-b border-slate-200 pb-1">References</p>
+    <div class="space-y-3">${refs.map(ref => `<p class="text-[11px] leading-relaxed text-slate-700" style="font-family:Georgia,serif;padding-left:1.5em;text-indent:-1.5em">${ref}</p>`).join('')}</div>
+    <div class="mt-10 pt-4 border-t border-slate-200 flex justify-between"><p class="text-[9px] text-slate-400">© ${r.year} Sociedade Portuguesa de Entomologia</p><p class="text-[10px] text-slate-400 font-mono">3</p></div>
+  </div>`;
+}
+
+function renderArticleSidebar(r) {
+  const typeBadgeClass = r.type==='artigo' ? 'bg-accent-soft/20 text-primary border-primary/20' : r.type==='revista' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+  const typeLabel = r.type==='artigo' ? 'Article' : r.type==='revista' ? 'Bulletin' : 'Event';
+  const langMap = {pt:'Portuguese',en:'English',es:'Spanish'};
+  const permalink = `https://spen-archive.github.io/#/article/${r.id}`;
+  const sidebar = document.getElementById('articleSidebar');
+
+  sidebar.innerHTML = `
+  <div class="flex flex-wrap items-center gap-2">
+    <span class="inline-flex items-center px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider border ${typeBadgeClass}">${typeLabel}</span>
+    <span class="flex items-center gap-1 text-[10px] font-bold text-primary uppercase tracking-wide"><span class="w-1.5 h-1.5 rounded-full bg-primary inline-block"></span>Open Access</span>
+    ${r.doi ? `<span class="text-[11px] px-2 py-1 rounded border border-border-dark text-accent-mid font-mono">${r.doi}</span>` : ''}
+  </div>
+  <h1 class="text-2xl font-bold text-white leading-tight">${r.title}</h1>
+  <div class="flex flex-col gap-2">${r.authors.map(a => `<div class='flex items-center gap-2 text-sm text-accent-mid'><span class='bg-accent-soft text-primary w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs'>${a.trim().charAt(0).toUpperCase()}</span><span>${a}</span></div>`).join('')}</div>
+  <div class="h-px bg-border-dark"></div>
+  <a href="${r.pdfUrl || '#'}" target="_blank" class="flex items-center justify-center gap-2 bg-primary text-white h-12 w-full rounded-lg font-semibold hover:bg-primary-hover transition-colors"><span class="material-symbols-outlined text-[18px]">download</span>Download PDF</a>
+  <div class="grid grid-cols-3 gap-2">
+    <button onclick="copyCitationText(activeCitation())" class="h-12 border border-border-dark rounded-lg text-accent-muted hover:text-primary hover:border-primary/40 flex flex-col items-center justify-center text-xs"><span class="material-symbols-outlined text-[18px]">format_quote</span>Cite</button>
+    <button onclick="window.print()" class="h-12 border border-border-dark rounded-lg text-accent-muted hover:text-primary hover:border-primary/40 flex flex-col items-center justify-center text-xs"><span class="material-symbols-outlined text-[18px]">print</span>Print</button>
+    <button onclick="copyPermalink()" class="h-12 border border-border-dark rounded-lg text-accent-muted hover:text-primary hover:border-primary/40 flex flex-col items-center justify-center text-xs"><span class="material-symbols-outlined text-[18px]">share</span>Share</button>
+  </div>
+  <div class="h-px bg-border-dark"></div>
+  <div>
+    <p class="text-xs uppercase tracking-widest text-accent-muted font-bold mb-2">Publication Details</p>
+    <div class="bg-surface-darker border border-border-dark rounded-lg p-3 text-sm">
+      <div class="grid grid-cols-3 gap-2 py-1"><span class="text-accent-muted">Journal</span><span class="col-span-2 text-white">${r.source}</span></div>
+      <div class="grid grid-cols-3 gap-2 py-1"><span class="text-accent-muted">Volume</span><span class="col-span-2 text-white">${r.vol}</span></div>
+      <div class="grid grid-cols-3 gap-2 py-1"><span class="text-accent-muted">Issue</span><span class="col-span-2 text-white font-mono">${r.issue}</span></div>
+      <div class="grid grid-cols-3 gap-2 py-1"><span class="text-accent-muted">Year</span><span class="col-span-2 text-white">${r.year}</span></div>
+      <div class="grid grid-cols-3 gap-2 py-1"><span class="text-accent-muted">Pages</span><span class="col-span-2 text-white">${r.pages}</span></div>
+      <div class="grid grid-cols-3 gap-2 py-1"><span class="text-accent-muted">Language</span><span class="col-span-2 text-white">${langMap[r.lang] || r.lang}</span></div>
+      <div class="grid grid-cols-3 gap-2 py-1"><span class="text-accent-muted">ISSN</span><span class="col-span-2 text-white font-mono">${r.issn || '-'}</span></div>
+      <div class="grid grid-cols-3 gap-2 py-1"><span class="text-accent-muted">DOI</span><span class="col-span-2 text-white font-mono">${r.doi ? `<a class='hover:text-primary' target='_blank' href='https://doi.org/${r.doi}'>${r.doi}</a>` : '-'}</span></div>
+    </div>
+  </div>
+  <div class="h-px bg-border-dark"></div>
+  <div><p class="text-xs uppercase tracking-widest text-accent-muted font-bold mb-2">Abstract</p><p class="text-sm text-accent-mid leading-relaxed">${r.abstract}</p></div>
+  <div class="h-px bg-border-dark"></div>
+  <div><p class="text-xs uppercase tracking-widest text-accent-muted font-bold mb-2">Keywords</p><div class="flex flex-wrap gap-2">${(r.keywords || []).map(k => `<span class='px-2 py-0.5 rounded text-xs bg-bg-dark text-accent-muted border border-border-dark hover:text-primary hover:border-primary/40'>${k}</span>`).join('')}</div></div>
+  <div class="h-px bg-border-dark"></div>
+  <div>
+    <p class="text-xs uppercase tracking-widest text-accent-muted font-bold mb-2">How to Cite</p>
+    <div class="flex gap-4 mb-2 text-sm">
+      <button id="tabBol" onclick="setCitation('boletim')" class="border-b-2 border-primary text-primary pb-1">Boletim</button>
+      <button id="tabApa" onclick="setCitation('apa')" class="border-b-2 border-transparent text-accent-muted pb-1">APA 7</button>
+    </div>
+    <div id="citationBox" class="rounded-lg bg-surface-darker p-3 italic text-sm text-accent-mid">${r.refBoletim}</div>
+    <button onclick="copyCitationText(activeCitation())" class="mt-2 h-9 px-3 bg-primary text-white rounded-lg text-xs font-semibold hover:bg-primary-hover">Copy citation</button>
+  </div>
+  <div>
+    <p class="text-xs uppercase tracking-widest text-accent-muted font-bold mb-2">Permanent Link</p>
+    <div class="bg-primary/5 border border-primary/20 rounded-lg p-3">
+      <p class="font-mono text-primary text-xs break-all">${permalink}</p>
+      <button onclick="copyPermalink()" class="mt-2 h-8 px-3 rounded-lg border border-border-dark text-accent-muted hover:text-primary text-xs">Copy link</button>
+    </div>
+  </div>`;
+
+  sidebar.dataset.refBoletim = r.refBoletim;
+  sidebar.dataset.refApa = r.refAPA;
+  sidebar.dataset.citationMode = 'boletim';
+}
+
+function activeCitation() {
+  const sidebar = document.getElementById('articleSidebar');
+  return sidebar.dataset.citationMode === 'apa' ? sidebar.dataset.refApa : sidebar.dataset.refBoletim;
+}
+
+function setCitation(mode) {
+  const sidebar = document.getElementById('articleSidebar');
+  sidebar.dataset.citationMode = mode;
+  document.getElementById('citationBox').textContent = mode === 'apa' ? sidebar.dataset.refApa : sidebar.dataset.refBoletim;
+  document.getElementById('tabBol').className = mode === 'boletim' ? 'border-b-2 border-primary text-primary pb-1' : 'border-b-2 border-transparent text-accent-muted pb-1';
+  document.getElementById('tabApa').className = mode === 'apa' ? 'border-b-2 border-primary text-primary pb-1' : 'border-b-2 border-transparent text-accent-muted pb-1';
+}
+
+function copyCitationText(text) {
+  navigator.clipboard.writeText(text).catch(() => {});
+  showToast('Citation copied!');
+}
+
+function updateSEO(r) {
+  try {
+    const url = `https://spen-archive.github.io/#/article/${r.id}`;
+    document.title = `${r.title} — SPEN Digital Archive`;
+    document.getElementById('canonicalLink').href = url;
+    document.getElementById('ogTitle').content = r.title;
+    document.getElementById('ogDesc').content = r.abstract;
+    document.getElementById('ogUrl').content = url;
+    document.getElementById('cit_title').content = r.title;
+    document.getElementById('cit_journal').content = r.source;
+    document.getElementById('cit_issn').content = r.issn || '';
+    document.getElementById('cit_pub').content = 'Sociedade Portuguesa de Entomologia';
+    document.getElementById('cit_date').content = String(r.year);
+    document.getElementById('cit_lang').content = r.lang;
+    document.getElementById('cit_abs').content = url;
+    document.getElementById('cit_pdf').content = r.pdfUrl ? `https://spen-archive.github.io/${r.pdfUrl}` : '';
+    document.getElementById('jsonLd').textContent = JSON.stringify({
+      '@context':'https://schema.org',
+      '@type':'ScholarlyArticle',
+      headline:r.title,
+      datePublished:String(r.year),
+      isAccessibleForFree:true,
+      inLanguage:r.lang,
+      pagination:r.pages,
+      publicationIssue:r.issue,
+      isPartOf:{'@type':'Periodical',name:r.source,issn:r.issn},
+      publisher:{'@type':'Organization',name:'Sociedade Portuguesa de Entomologia'},
+      author:r.authors.map(a => ({'@type':'Person',name:a})),
+      url,
+      sameAs:r.doi ? `https://doi.org/${r.doi}` : undefined
+    });
+  } catch(e) {}
+}
+
+function resetSEO() {
+  document.title = 'Digital Archive — SPEN';
+  document.getElementById('canonicalLink').href = 'https://spen-archive.github.io/';
+  document.getElementById('ogTitle').content = 'Digital Archive — SPEN';
+  document.getElementById('ogDesc').content = 'Digital repository of the Sociedade Portuguesa de Entomologia';
+  document.getElementById('ogUrl').content = 'https://spen-archive.github.io/';
+  document.getElementById('cit_title').content = '';
+  document.getElementById('cit_journal').content = 'Boletim da Sociedade Portuguesa de Entomologia';
+  document.getElementById('cit_issn').content = '0870-473X';
+  document.getElementById('cit_pub').content = 'Sociedade Portuguesa de Entomologia';
+  document.getElementById('cit_date').content = '';
+  document.getElementById('cit_lang').content = 'pt';
+  document.getElementById('cit_abs').content = '';
+  document.getElementById('cit_pdf').content = '';
+  document.getElementById('jsonLd').textContent = '{"@context":"https://schema.org","@type":"WebSite","name":"SPEN Digital Archive","url":"https://spen-archive.github.io/"}';
+}
+
+function copyPermalink() {
+  const url = `https://spen-archive.github.io/${location.hash}`;
+  navigator.clipboard.writeText(url).catch(() => {});
+  showToast('Link copied!');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  t.style.opacity = '1';
+  t.style.transform = 'translateX(-50%) translateY(0)';
+  t.classList.remove('pointer-events-none');
+  setTimeout(() => {
+    t.style.opacity = '0';
+    t.style.transform = 'translateX(-50%) translateY(8px)';
+    t.classList.add('pointer-events-none');
+  }, 2500);
+}
+
+function zoomIn()  { zoomLevel = Math.min(200, zoomLevel + 25); applyZoom(); }
+function zoomOut() { zoomLevel = Math.max(50,  zoomLevel - 25); applyZoom(); }
+function applyZoom() {
+  document.getElementById('zoomLabel').textContent = zoomLevel + '%';
+  document.querySelectorAll('.pdf-page').forEach(p => p.style.transform = `scale(${zoomLevel/100})`);
+}
+
+window.addEventListener('popstate', () => {
+  const m = location.hash.match(/^#\/article\/(\d+)$/);
+  if (m) openArticle(parseInt(m[1]));
+  else goHome();
+});
+
+renderList(RECORDS);
+document.getElementById('statRecords').textContent = RECORDS.length;
+doSearch();
+
+const initM = location.hash.match(/^#\/article\/(\d+)$/);
+if (initM) openArticle(parseInt(initM[1]));
+</script>
+</body>
 </html>

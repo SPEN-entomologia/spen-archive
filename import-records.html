@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CSV Import Utility — SPEN</title>
+<meta name="description" content="Digital repository of publications, bulletins and proceedings of the Sociedade Portuguesa de Entomologia (SPEN) since 1982."/>
+<link id="canonicalLink" rel="canonical" href="https://spen-archive.github.io/"/>
+<meta property="og:site_name" content="SPEN — Digital Archive"/>
+<meta property="og:type" content="website"/>
+<meta id="ogTitle"  property="og:title"       content="Digital Archive — SPEN"/>
+<meta id="ogDesc"   property="og:description" content="Digital repository of the Sociedade Portuguesa de Entomologia"/>
+<meta id="ogUrl"    property="og:url"         content="https://spen-archive.github.io/"/>
+<meta id="cit_title"    name="citation_title"            content=""/>
+<meta id="cit_journal"  name="citation_journal_title"    content="Boletim da Sociedade Portuguesa de Entomologia"/>
+<meta id="cit_issn"     name="citation_issn"             content="0870-473X"/>
+<meta id="cit_pub"      name="citation_publisher"        content="Sociedade Portuguesa de Entomologia"/>
+<meta id="cit_date"     name="citation_date"             content=""/>
+<meta id="cit_lang"     name="citation_language"         content="pt"/>
+<meta id="cit_abs"      name="citation_abstract_html_url" content=""/>
+<meta id="cit_pdf"      name="citation_pdf_url"          content=""/>
+<script id="jsonLd" type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"SPEN Digital Archive","url":"https://spen-archive.github.io/"}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+tailwind.config = { darkMode: 'class', theme: { extend: { colors: { "primary":"#036939","primary-hover":"#13603d","primary-light":"#266348","accent-mid":"#559074","accent-muted":"#92b7a6","accent-soft":"#cdeadb","accent-softer":"#b1e4cc","bg-dark":"#091f12","surface-dark":"#0d2b1a","surface-darker":"#071710","border-dark":"#1a4028","bg-light":"#f3fefa","surface-light":"#ffffff","border-light":"#cdeadb" }, fontFamily: { display:["Crimson Pro","Georgia","serif"], body:["Crimson Pro","Georgia","serif"], mono:["JetBrains Mono","monospace"] } } } };
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<style>
+*{font-family:"Crimson Pro",Georgia,serif} #toast{transition:opacity .3s,transform .3s}
+</style>
+</head>
+<body class="antialiased min-h-screen bg-bg-dark text-white">
+  <header class="border-b border-border-dark bg-surface-dark">
+    <div class="max-w-6xl mx-auto px-5 py-4 flex items-center gap-3">
+      <div class="rounded-lg bg-accent-soft/20 p-1.5 text-primary"><span class="material-symbols-outlined">pest_control</span></div>
+      <div>
+        <h1 class="text-xl font-bold">SPEN CSV Import Utility</h1>
+        <p class="text-accent-muted text-sm">Sociedade Portuguesa de Entomologia</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-5 py-8 space-y-6">
+    <div id="dropZone" class="min-h-[200px] border-2 border-dashed border-border-dark rounded-xl flex flex-col items-center justify-center text-center bg-surface-dark cursor-pointer">
+      <span class="material-symbols-outlined text-5xl text-accent-muted">upload_file</span>
+      <p class="mt-2 font-semibold">Drop CSV file here or click to browse</p>
+      <p class="text-sm text-accent-muted mt-1">Expected columns follow the SPEN record schema.</p>
+      <input id="fileInput" type="file" accept=".csv" class="hidden"/>
+    </div>
+
+    <div id="status" class="hidden items-center gap-2"><span class="px-3 py-1 rounded-full bg-primary/20 text-primary text-sm font-bold" id="countBadge">0 records ready</span></div>
+
+    <div id="previewWrap" class="hidden bg-surface-dark border border-border-dark rounded-xl p-4">
+      <h2 class="font-bold mb-3">Preview (first 5 rows)</h2>
+      <div class="overflow-auto"><table class="min-w-full text-sm" id="previewTable"></table></div>
+    </div>
+
+    <div id="validationWrap" class="hidden bg-surface-dark border border-border-dark rounded-xl p-4">
+      <h2 class="font-bold mb-2">Validation</h2>
+      <ul id="validationList" class="text-sm text-accent-mid list-disc pl-5"></ul>
+    </div>
+
+    <div class="bg-surface-dark border border-border-dark rounded-xl p-4">
+      <div class="flex items-center justify-between mb-2">
+        <h2 class="font-bold">Generated JavaScript</h2>
+        <button onclick="copyOutput()" class="h-9 px-4 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-primary-hover">Copy to clipboard</button>
+      </div>
+      <textarea id="output" readonly class="w-full h-[340px] bg-surface-darker border border-border-dark rounded-lg p-3 text-sm font-mono"></textarea>
+    </div>
+
+    <details class="bg-surface-dark border border-border-dark rounded-xl p-4">
+      <summary class="cursor-pointer font-bold">CSV format guide</summary>
+      <div class="mt-3 text-sm text-accent-mid space-y-2">
+        <p class="font-mono">id, type, period, featured, title, authors, authorsRef, source, issn, vol, issue, issueNr, issueInVol, year, pages, lang, order, access, abstract, keywords, pdfUrl, doi, refBoletim, refAPA</p>
+        <p class="font-mono">190,artigo,1990s,false,"Contribution...","Serrano, A.R.M.; Boieiro, M.","SERRANO, A.R.M. & BOIEIRO, M.","Boletim da Sociedade Portuguesa de Entomologia",0870-473X,"Vol. VII","N.º 190",190,8,1999,"81–88",en,coleoptera,aberto,"Contribution...","Coleoptera; Portugal; Faunistics",pdfs/b-190.pdf,,"Bolm Soc. port. Ent. n.º 190 (VII-8): 81–88. 1999.","SERRANO, A.R.M., & BOIEIRO, M. (1999)..."</p>
+      </div>
+    </details>
+  </main>
+
+  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 opacity-0 pointer-events-none z-50 px-4 py-2 rounded-full bg-surface-darker border border-border-dark">Copied!</div>
+
+<script>
+const required = ['id','title','authors','year'];
+const columns = ['id','type','period','featured','title','authors','authorsRef','source','issn','vol','issue','issueNr','issueInVol','year','pages','lang','order','access','abstract','keywords','pdfUrl','doi','refBoletim','refAPA'];
+
+const dz = document.getElementById('dropZone');
+const fi = document.getElementById('fileInput');
+dz.addEventListener('click',()=>fi.click());
+fi.addEventListener('change',e=>handleFile(e.target.files[0]));
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('border-primary');});
+dz.addEventListener('dragleave',()=>dz.classList.remove('border-primary'));
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('border-primary');handleFile(e.dataTransfer.files[0]);});
+
+function handleFile(file){
+  if(!file) return;
+  Papa.parse(file,{header:true,skipEmptyLines:true,complete:(res)=>processRows(res.data)});
+}
+
+function esc(s){return String(s ?? '').replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
+
+function processRows(rows){
+  const clean = rows.map(r=>{
+    const item={};
+    columns.forEach(c=>item[c]=(r[c]??'').trim());
+    item.id = parseInt(item.id,10) || null;
+    item.issueNr = parseInt(item.issueNr,10) || 0;
+    item.issueInVol = parseInt(item.issueInVol,10) || 0;
+    item.year = parseInt(item.year,10) || null;
+    item.featured = String(item.featured).toLowerCase()==='true';
+    item.authors = item.authors ? item.authors.split(';').map(x=>x.trim()).filter(Boolean) : [];
+    item.keywords = item.keywords ? item.keywords.split(';').map(x=>x.trim()).filter(Boolean) : [];
+    item.pdfUrl = item.pdfUrl || null;
+    item.doi = item.doi || '';
+    item.order = item.order || null;
+    return item;
+  });
+
+  document.getElementById('status').classList.remove('hidden');
+  document.getElementById('status').classList.add('flex');
+  document.getElementById('countBadge').textContent = `${clean.length} records ready`;
+
+  const preview = document.getElementById('previewTable');
+  const previewRows = clean.slice(0,5);
+  document.getElementById('previewWrap').classList.remove('hidden');
+  preview.innerHTML = `<thead><tr>${columns.map(c=>`<th class='text-left border-b border-border-dark pr-2 py-1 text-accent-muted'>${c}</th>`).join('')}</tr></thead><tbody>${previewRows.map(r=>`<tr>${columns.map(c=>`<td class='border-b border-border-dark/40 pr-2 py-1'>${Array.isArray(r[c])?r[c].join('; '):(r[c]??'')}</td>`).join('')}</tr>`).join('')}</tbody>`;
+
+  const errs = [];
+  clean.forEach((r,i)=>{
+    const miss = required.filter(k=>!r[k] || (Array.isArray(r[k]) && !r[k].length));
+    if(miss.length) errs.push(`Row ${i+2}: missing ${miss.join(', ')}`);
+  });
+  document.getElementById('validationWrap').classList.remove('hidden');
+  document.getElementById('validationList').innerHTML = errs.length ? errs.map(e=>`<li>${e}</li>`).join('') : '<li>No required-field issues found.</li>';
+
+  const out = `const RECORDS = [\n${clean.map(r=>`  {\n    id: ${r.id ?? 'null'}, type: '${esc(r.type)}', period: '${esc(r.period)}', featured: ${r.featured},\n    title: '${esc(r.title)}',\n    authors: [${r.authors.map(a=>`'${esc(a)}'`).join(', ')}],\n    authorsRef: '${esc(r.authorsRef)}',\n    source: '${esc(r.source)}',\n    issn: '${esc(r.issn)}', vol: '${esc(r.vol)}', issue: '${esc(r.issue)}',\n    issueNr: ${r.issueNr}, issueInVol: ${r.issueInVol},\n    year: ${r.year ?? 'null'}, pages: '${esc(r.pages)}', lang: '${esc(r.lang)}',\n    order: ${r.order ? `'${esc(r.order)}'` : 'null'}, access: '${esc(r.access)}',\n    abstract: '${esc(r.abstract)}',\n    keywords: [${r.keywords.map(k=>`'${esc(k)}'`).join(', ')}],\n    pdfUrl: ${r.pdfUrl ? `'${esc(r.pdfUrl)}'` : 'null'}, doi: '${esc(r.doi)}',\n    refBoletim: '${esc(r.refBoletim)}',\n    refAPA: '${esc(r.refAPA)}',\n  },`).join('\n')}\n];`;
+  document.getElementById('output').value = out;
+}
+
+function copyOutput(){
+  navigator.clipboard.writeText(document.getElementById('output').value).catch(()=>{});
+  showToast('Copied!');
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.style.opacity='1';
+  t.style.transform='translateX(-50%) translateY(0)';
+  setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(-50%) translateY(8px)';},2500);
+}
+</script>
+</body>
+</html>
