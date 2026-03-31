@@ -12,7 +12,7 @@
   BULK IMPORT: open import-records.html in any browser
 -->
 <!doctype html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -50,20 +50,21 @@
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <script>
 tailwind.config = {
+  darkMode: "class",
   theme: {
     extend: {
       colors: {
         "primary":        "#036939",
         "primary-hover":  "#13603d",
         "primary-light":  "#266348",
-        "accent-mid":     "#3f6f5a",
-        "accent-muted":   "#6a8f7d",
+        "accent-mid":     "#559074",
+        "accent-muted":   "#92b7a6",
         "accent-soft":    "#cdeadb",
         "accent-softer":  "#b1e4cc",
-        "bg-dark":        "#f3fbf7",
-        "surface-dark":   "#ffffff",
-        "surface-darker": "#f5fbf8",
-        "border-dark":    "#d2e5db",
+        "bg-dark":        "#091f12",
+        "surface-dark":   "#0d2b1a",
+        "surface-darker": "#071710",
+        "border-dark":    "#1a4028",
         "bg-light":       "#f3fefa",
         "surface-light":  "#ffffff",
         "border-light":   "#cdeadb",
@@ -95,7 +96,7 @@ tailwind.config = {
   #toast { transition: opacity .3s, transform .3s; }
 </style>
 </head>
-<body class="antialiased min-h-screen flex flex-col bg-bg-light text-slate-900">
+<body class="antialiased min-h-screen flex flex-col bg-bg-light dark:bg-bg-dark text-slate-900 dark:text-white">
 <header class="sticky top-0 z-50 w-full border-b border-border-dark bg-bg-dark/90 backdrop-blur-md">
   <div class="max-w-[1400px] mx-auto px-5 py-3 flex items-center justify-between gap-4">
     <button onclick="goHome()" class="flex items-center gap-2.5 shrink-0 group">
@@ -103,73 +104,59 @@ tailwind.config = {
         <span class="material-symbols-outlined text-2xl">pest_control</span>
       </div>
       <div class="hidden sm:block text-left">
-        <p class="text-sm font-bold leading-none group-hover:text-primary transition-colors text-slate-900">SPEN</p>
+        <p class="text-sm font-bold leading-none group-hover:text-primary transition-colors text-white">SPEN</p>
         <p class="text-[10px] text-accent-muted mt-0.5">Sociedade Portuguesa de Entomologia</p>
       </div>
     </button>
 
     <nav class="hidden lg:flex items-center gap-6">
-      <button data-nav="home" onclick="goHome()" class="navbtn text-sm font-medium text-accent-muted hover:text-primary transition-colors">Home</button>
-      <button data-nav="archive" onclick="goArchive()" class="navbtn text-sm font-medium text-accent-muted hover:text-primary transition-colors">Archive</button>
-      <button data-nav="about" onclick="goAbout()" class="navbtn text-sm font-medium text-accent-muted hover:text-primary transition-colors">About</button>
-      <button data-nav="contact" onclick="goContact()" class="navbtn text-sm font-medium text-accent-muted hover:text-primary transition-colors">Contact</button>
+      <button onclick="goHome()" class="text-sm font-medium text-accent-muted hover:text-primary transition-colors">Home</button>
+      <button onclick="goHome()" class="text-sm font-medium text-primary border-b-2 border-primary pb-0.5">Archive</button>
+      <a href="#" class="text-sm font-medium text-accent-muted hover:text-primary transition-colors">Publications</a>
+      <a href="#" class="text-sm font-medium text-accent-muted hover:text-primary transition-colors">About</a>
+      <a href="#" class="text-sm font-medium text-accent-muted hover:text-primary transition-colors">Contact</a>
     </nav>
+
+    <button class="flex items-center justify-center h-9 px-4 bg-primary hover:bg-primary-hover text-white text-sm font-bold rounded-lg transition-all">
+      Login
+    </button>
   </div>
 </header>
 
-<section id="viewHome" class="flex flex-col flex-1">
-  <main class="flex-1 max-w-[1100px] w-full mx-auto px-5 py-16">
-    <div class="bg-surface-dark border border-border-dark rounded-2xl p-8 lg:p-12">
-      <p class="text-xs font-bold uppercase tracking-widest text-primary mb-3">Sociedade Portuguesa de Entomologia</p>
-      <h1 class="text-4xl lg:text-5xl font-black tracking-tight text-slate-900">SPEN Digital Archive</h1>
-      <p class="mt-4 text-lg text-accent-mid max-w-2xl">The digital repository of the Sociedade Portuguesa de Entomologia provides open access to bulletins, proceedings, catalogues and scientific articles relevant to Portuguese and Iberian entomology.</p>
-      <div class="mt-8">
-        <button onclick="goArchive()" class="h-12 px-6 bg-primary text-white hover:bg-primary-hover rounded-lg font-bold">Browse Archive</button>
+<div id="viewList" class="flex flex-col flex-1">
+  <div class="w-full bg-surface-dark border-b border-border-dark">
+    <div class="max-w-[1400px] mx-auto px-5 py-10 lg:py-14">
+      <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
+        <div>
+          <p class="text-xs font-bold uppercase tracking-widest text-primary mb-3">Sociedade Portuguesa de Entomologia</p>
+          <h2 class="text-4xl lg:text-5xl font-black tracking-tight leading-tight text-white">Digital <span class="text-primary">Archive</span></h2>
+          <p class="text-accent-muted mt-3 text-base max-w-lg">Repository of publications, bulletins and proceedings of the Sociedade Portuguesa de Entomologia since 1982.</p>
+        </div>
+        <div class="flex gap-8 shrink-0">
+          <div class="text-center">
+            <p class="text-3xl font-black text-white" id="statRecords">0</p>
+            <p class="text-xs text-accent-muted uppercase tracking-wider mt-0.5">Records</p>
+          </div>
+          <div class="w-px bg-border-dark"></div>
+          <div class="text-center">
+            <p class="text-3xl font-black text-white">8</p>
+            <p class="text-xs text-accent-muted uppercase tracking-wider mt-0.5">Volumes</p>
+          </div>
+          <div class="w-px bg-border-dark"></div>
+          <div class="text-center">
+            <p class="text-3xl font-black text-white">1982</p>
+            <p class="text-xs text-accent-muted uppercase tracking-wider mt-0.5">Founded</p>
+          </div>
+        </div>
       </div>
-    </div>
-  </main>
-</section>
 
-<section id="viewAbout" class="hidden flex-col flex-1">
-  <main class="flex-1 max-w-[1100px] w-full mx-auto px-5 py-16">
-    <div class="bg-surface-dark border border-border-dark rounded-2xl p-8 lg:p-12 space-y-5">
-      <h2 class="text-3xl font-black text-slate-900">About</h2>
-      <p class="text-accent-mid">Sociedade Portuguesa de Entomologia is a scientific society dedicated to the study of insects and other arthropods, supporting taxonomy, ecology, conservation and applied entomology in Portugal and related regions.</p>
-      <p class="text-accent-mid">This digital archive preserves and disseminates publications issued or curated by the Sociedade Portuguesa de Entomologia, including the <em>Boletim da Sociedade Portuguesa de Entomologia</em>, thematic supplements, conference proceedings and specialist catalogues.</p>
-      <p class="text-accent-mid">The collection includes peer-reviewed articles, faunistic records, checklists, historical documentation and institutional material, all organized for search, filtering and direct citation.</p>
-    </div>
-  </main>
-</section>
-
-<section id="viewContact" class="hidden flex-col flex-1">
-  <main class="flex-1 max-w-[900px] w-full mx-auto px-5 py-16">
-    <div class="bg-surface-dark border border-border-dark rounded-2xl p-8 lg:p-12 space-y-5">
-      <h2 class="text-3xl font-black text-slate-900">Contact</h2>
-      <p class="text-accent-mid">For archive updates, metadata corrections or publication questions, contact the Sociedade Portuguesa de Entomologia directly.</p>
-      <p class="text-sm text-accent-muted uppercase tracking-wider font-bold">Email</p>
-      <a class="text-primary font-semibold hover:underline" href="mailto:arquivo@spen.pt">arquivo@spen.pt</a>
-      <p class="text-sm text-accent-muted uppercase tracking-wider font-bold">Institution</p>
-      <p class="text-accent-mid">SPEN — Sociedade Portuguesa de Entomologia</p>
-    </div>
-  </main>
-</section>
-
-<div id="viewList" class="hidden flex-col flex-1">
-  <main class="flex-1 max-w-[1400px] w-full mx-auto px-5 py-10">
-    <div class="mb-6">
-      <p class="text-xs font-bold uppercase tracking-widest text-primary mb-2">Sociedade Portuguesa de Entomologia</p>
-      <h2 class="text-3xl lg:text-4xl font-black text-slate-900">Archive</h2>
-      <p class="text-accent-muted mt-2">Search and browse publications, bulletins, proceedings and catalogues.</p>
-    </div>
-
-    <div class="bg-surface-dark border border-border-dark rounded-xl p-4 mb-6">
-      <div class="flex flex-col sm:flex-row gap-3">
+      <div class="mt-8 flex flex-col sm:flex-row gap-3">
         <div class="relative flex-1">
           <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-accent-muted text-[20px]">search</span>
-          <input id="searchInput" type="text" placeholder="Search by title, author, keywords…" class="w-full h-12 bg-bg-light border border-border-dark rounded-lg pl-12 pr-4 text-slate-900 placeholder:text-accent-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-base" oninput="doSearch()"/>
+          <input id="searchInput" type="text" placeholder="Search by title, author, keywords…" class="w-full h-14 bg-bg-dark border border-border-dark rounded-lg pl-12 pr-4 text-white placeholder:text-accent-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-base" oninput="doSearch()"/>
         </div>
-        <button onclick="doSearch()" class="h-12 px-6 bg-primary hover:bg-primary-hover text-white font-bold rounded-lg text-sm tracking-wide shrink-0 transition-all">Search</button>
-        <button onclick="toggleFilters()" class="h-12 px-5 bg-surface-dark border border-border-dark hover:border-primary/50 text-slate-900 font-medium rounded-lg text-sm flex items-center gap-2 shrink-0 transition-all">
+        <button onclick="doSearch()" class="h-14 px-8 bg-primary hover:bg-primary-hover text-white font-bold rounded-lg text-sm tracking-wide shrink-0 transition-all">Search</button>
+        <button onclick="toggleFilters()" class="h-14 px-5 bg-surface-dark border border-border-dark hover:border-primary/50 text-white font-medium rounded-lg text-sm flex items-center gap-2 shrink-0 transition-all">
           <span class="material-symbols-outlined text-[20px] text-accent-muted">tune</span>Filters
         </button>
       </div>
@@ -177,31 +164,33 @@ tailwind.config = {
       <div id="filtersPanel" class="hidden mt-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         <div class="flex flex-col gap-1.5">
           <label class="text-[10px] font-bold uppercase tracking-widest text-accent-muted">Type</label>
-          <select id="filterType" onchange="doSearch()" class="bg-surface-dark border border-border-dark rounded-lg px-3 h-10 text-slate-900 text-sm focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer">
+          <select id="filterType" onchange="doSearch()" class="bg-surface-dark border border-border-dark rounded-lg px-3 h-10 text-white text-sm focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer">
             <option value="">All types</option><option value="artigo">Scientific Article</option><option value="revista">Bulletin / Journal</option><option value="evento">Event / Proceedings</option>
           </select>
         </div>
         <div class="flex flex-col gap-1.5">
           <label class="text-[10px] font-bold uppercase tracking-widest text-accent-muted">Period</label>
-          <select id="filterPeriod" onchange="doSearch()" class="bg-surface-dark border border-border-dark rounded-lg px-3 h-10 text-slate-900 text-sm focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer">
+          <select id="filterPeriod" onchange="doSearch()" class="bg-surface-dark border border-border-dark rounded-lg px-3 h-10 text-white text-sm focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer">
             <option value="">Any date</option><option value="2020s">2020–Present</option><option value="2010s">2010–2019</option><option value="2000s">2000–2009</option><option value="1990s">1990–1999</option><option value="1980s">1982–1989</option>
           </select>
         </div>
         <div class="flex flex-col gap-1.5">
           <label class="text-[10px] font-bold uppercase tracking-widest text-accent-muted">Order</label>
-          <select id="filterOrder" onchange="doSearch()" class="bg-surface-dark border border-border-dark rounded-lg px-3 h-10 text-slate-900 text-sm focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer">
+          <select id="filterOrder" onchange="doSearch()" class="bg-surface-dark border border-border-dark rounded-lg px-3 h-10 text-white text-sm focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer">
             <option value="">All orders</option><option value="coleoptera">Coleoptera</option><option value="lepidoptera">Lepidoptera</option><option value="hymenoptera">Hymenoptera</option><option value="diptera">Diptera</option><option value="hemiptera">Hemiptera</option><option value="orthoptera">Orthoptera</option><option value="isoptera">Isoptera</option><option value="neuroptera">Neuroptera</option>
           </select>
         </div>
         <div class="flex flex-col gap-1.5">
           <label class="text-[10px] font-bold uppercase tracking-widest text-accent-muted">Language</label>
-          <select id="filterLang" onchange="doSearch()" class="bg-surface-dark border border-border-dark rounded-lg px-3 h-10 text-slate-900 text-sm focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer">
+          <select id="filterLang" onchange="doSearch()" class="bg-surface-dark border border-border-dark rounded-lg px-3 h-10 text-white text-sm focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer">
             <option value="">Any</option><option value="pt">Portuguese</option><option value="en">English</option><option value="es">Spanish</option>
           </select>
         </div>
       </div>
     </div>
+  </div>
 
+  <main class="flex-1 max-w-[1400px] w-full mx-auto px-5 py-8">
     <div class="flex gap-8">
       <aside class="hidden xl:flex flex-col w-52 shrink-0 gap-5 pt-1">
         <div>
@@ -241,14 +230,14 @@ tailwind.config = {
       <div class="flex-1 min-w-0">
         <div class="flex items-center justify-between mb-5">
           <div>
-            <p class="font-semibold text-slate-900"><span id="countDisplay">0</span> records</p>
+            <p class="font-semibold text-white"><span id="countDisplay">0</span> records</p>
             <p class="text-accent-muted text-xs mt-0.5" id="activeFiltersLabel">All records</p>
           </div>
           <div class="flex items-center gap-2">
-            <select id="sortSelect" onchange="doSearch()" class="bg-surface-dark border border-border-dark rounded-lg px-3 h-9 text-slate-900 text-sm focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer">
+            <select id="sortSelect" onchange="doSearch()" class="bg-surface-dark border border-border-dark rounded-lg px-3 h-9 text-white text-sm focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer">
               <option value="date-desc">Most recent</option><option value="date-asc">Oldest first</option><option value="alpha">Title A–Z</option>
             </select>
-            <button onclick="clearSearch()" class="h-9 px-3 border border-border-dark rounded-lg text-accent-muted hover:text-slate-900 hover:border-accent-muted transition-colors text-sm flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">close</span><span class="hidden sm:block">Clear</span></button>
+            <button onclick="clearSearch()" class="h-9 px-3 border border-border-dark rounded-lg text-accent-muted hover:text-white hover:border-accent-muted transition-colors text-sm flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">close</span><span class="hidden sm:block">Clear</span></button>
           </div>
         </div>
         <div id="resultsGrid" class="flex flex-col gap-3"></div>
@@ -260,14 +249,14 @@ tailwind.config = {
 <div id="viewArticle" class="hidden flex-col flex-1 h-[calc(100vh-57px)] overflow-hidden">
   <div class="flex items-center justify-between px-4 py-2 bg-surface-dark border-b border-border-dark shadow-sm z-10 shrink-0">
     <div class="flex items-center gap-3">
-      <button onclick="goArchive()" class="flex items-center gap-1.5 text-sm text-accent-muted hover:text-primary transition-colors"><span class="material-symbols-outlined text-[18px]">arrow_back</span><span class="hidden sm:block">Archive</span></button>
+      <button onclick="goHome()" class="flex items-center gap-1.5 text-sm text-accent-muted hover:text-primary transition-colors"><span class="material-symbols-outlined text-[18px]">arrow_back</span><span class="hidden sm:block">Archive</span></button>
       <div class="w-px h-4 bg-border-dark"></div>
       <span class="text-sm text-accent-muted font-mono hidden md:block">Preview — 3 pages</span>
     </div>
     <div class="flex items-center gap-1 bg-bg-dark rounded-lg p-1">
-      <button onclick="zoomOut()" class="p-1.5 rounded hover:bg-surface-dark text-accent-muted hover:text-slate-900 transition-colors"><span class="material-symbols-outlined text-[18px]">remove</span></button>
-      <span id="zoomLabel" class="text-xs w-12 text-center font-mono text-slate-900">100%</span>
-      <button onclick="zoomIn()" class="p-1.5 rounded hover:bg-surface-dark text-accent-muted hover:text-slate-900 transition-colors"><span class="material-symbols-outlined text-[18px]">add</span></button>
+      <button onclick="zoomOut()" class="p-1.5 rounded hover:bg-surface-dark text-accent-muted hover:text-white transition-colors"><span class="material-symbols-outlined text-[18px]">remove</span></button>
+      <span id="zoomLabel" class="text-xs w-12 text-center font-mono text-white">100%</span>
+      <button onclick="zoomIn()" class="p-1.5 rounded hover:bg-surface-dark text-accent-muted hover:text-white transition-colors"><span class="material-symbols-outlined text-[18px]">add</span></button>
     </div>
     <button onclick="copyPermalink()" class="flex items-center gap-1.5 px-3 h-8 rounded-lg text-xs font-medium border border-border-dark text-accent-muted hover:text-primary hover:border-primary/40 transition-colors"><span class="material-symbols-outlined text-[15px]">link</span><span class="hidden sm:block">Copy link</span></button>
   </div>
@@ -288,8 +277,8 @@ tailwind.config = {
       <p class="text-accent-muted text-sm">© 2025 SPEN — Sociedade Portuguesa de Entomologia</p>
     </div>
     <div class="flex gap-5">
-      <button onclick="goAbout()" class="text-accent-muted hover:text-primary text-sm transition-colors">About</button>
-      <button onclick="goContact()" class="text-accent-muted hover:text-primary text-sm transition-colors">Contact</button>
+      <a class="text-accent-muted hover:text-primary text-sm transition-colors" href="#">Privacy Policy</a>
+      <a class="text-accent-muted hover:text-primary text-sm transition-colors" href="#">Contact</a>
     </div>
   </div>
 </footer>
@@ -439,85 +428,33 @@ function renderList(records) {
         <span class="text-accent-muted text-xs font-mono">${r.issue}</span>
         <span class="flex items-center gap-1 text-[10px] font-bold text-primary uppercase tracking-wide"><span class="w-1.5 h-1.5 rounded-full bg-primary inline-block"></span>Open Access</span>
       </div>
-      <h3 class="font-semibold leading-snug group-hover:text-primary transition-colors mb-1 text-slate-900">${r.title}</h3>
+      <h3 class="font-semibold leading-snug group-hover:text-primary transition-colors mb-1 text-white">${r.title}</h3>
       <p class="text-accent-muted text-sm italic mb-2">${r.authors.join(', ')}</p>
       <p class="text-accent-mid text-sm leading-relaxed line-clamp-2">${r.abstract}</p>
       <div class="flex flex-wrap gap-1.5 mt-3">${r.keywords.slice(0,4).map(k => `<span class="px-2 py-0.5 rounded text-xs bg-bg-dark text-accent-muted border border-border-dark">${k}</span>`).join('')}</div>
     </div>
     <div class="flex sm:flex-col gap-2 items-end justify-end shrink-0">
       <button onclick="event.stopPropagation();openArticle(${r.id})" class="flex items-center gap-1.5 px-3 h-8 rounded-lg text-xs font-medium bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors"><span class="material-symbols-outlined text-[14px]">menu_book</span> Read</button>
-      <button onclick="event.stopPropagation()" class="flex items-center gap-1.5 px-3 h-8 rounded-lg text-xs font-medium bg-surface-darker text-accent-muted border border-border-dark hover:text-slate-900 hover:border-accent-muted transition-colors"><span class="material-symbols-outlined text-[14px]">format_quote</span> Cite</button>
+      <button onclick="event.stopPropagation()" class="flex items-center gap-1.5 px-3 h-8 rounded-lg text-xs font-medium bg-surface-darker text-accent-muted border border-border-dark hover:text-white hover:border-accent-muted transition-colors"><span class="material-symbols-outlined text-[14px]">format_quote</span> Cite</button>
     </div>
   </div>
 </div>`).join('');
 }
 
 function goHome() {
-  showMainView('home');
-  setNavActive('home');
-  try { history.pushState(null, '', '#/home'); } catch(e) {}
-  document.getElementById('mainFooter').classList.remove('hidden');
-  resetSEO();
-}
-
-function goArchive() {
-  showMainView('archive');
+  document.getElementById('viewList').classList.remove('hidden');
+  document.getElementById('viewList').classList.add('flex');
   document.getElementById('viewArticle').classList.add('hidden');
   document.getElementById('viewArticle').classList.remove('flex');
   document.getElementById('mainFooter').classList.remove('hidden');
-  setNavActive('archive');
-  try { history.pushState(null, '', '#/archive'); } catch(e) {}
+  try { history.pushState(null, '', '#/'); } catch(e) {}
   document.title = 'Digital Archive — SPEN';
   resetSEO();
-}
-
-function goAbout() {
-  showMainView('about');
-  setNavActive('about');
-  try { history.pushState(null, '', '#/about'); } catch(e) {}
-  document.getElementById('viewArticle').classList.add('hidden');
-  document.getElementById('viewArticle').classList.remove('flex');
-  document.getElementById('mainFooter').classList.remove('hidden');
-  resetSEO();
-}
-
-function goContact() {
-  showMainView('contact');
-  setNavActive('contact');
-  try { history.pushState(null, '', '#/contact'); } catch(e) {}
-  document.getElementById('viewArticle').classList.add('hidden');
-  document.getElementById('viewArticle').classList.remove('flex');
-  document.getElementById('mainFooter').classList.remove('hidden');
-  resetSEO();
-}
-
-function showMainView(section) {
-  ['home','about','contact'].forEach(s => {
-    const el = document.getElementById(`view${s.charAt(0).toUpperCase()+s.slice(1)}`);
-    el.classList.toggle('hidden', s !== section);
-    el.classList.toggle('flex', s === section);
-  });
-  const archiveOn = section === 'archive';
-  document.getElementById('viewList').classList.toggle('hidden', !archiveOn);
-  document.getElementById('viewList').classList.toggle('flex', archiveOn);
-}
-
-function setNavActive(section) {
-  document.querySelectorAll('.navbtn').forEach(btn => {
-    const on = btn.dataset.nav === section;
-    btn.classList.toggle('text-primary', on);
-    btn.classList.toggle('border-b-2', on);
-    btn.classList.toggle('border-primary', on);
-    btn.classList.toggle('pb-0.5', on);
-    btn.classList.toggle('text-accent-muted', !on);
-  });
 }
 
 function openArticle(id) {
   const r = RECORDS.find(x => x.id === id);
   if (!r) return;
-  showMainView('archive');
-  setNavActive('archive');
   document.getElementById('viewList').classList.add('hidden');
   document.getElementById('viewList').classList.remove('flex');
   document.getElementById('viewArticle').classList.remove('hidden');
@@ -632,10 +569,10 @@ function renderArticleSidebar(r) {
     <span class="flex items-center gap-1 text-[10px] font-bold text-primary uppercase tracking-wide"><span class="w-1.5 h-1.5 rounded-full bg-primary inline-block"></span>Open Access</span>
     ${r.doi ? `<span class="text-[11px] px-2 py-1 rounded border border-border-dark text-accent-mid font-mono">${r.doi}</span>` : ''}
   </div>
-  <h1 class="text-2xl font-bold text-slate-900 leading-tight">${r.title}</h1>
+  <h1 class="text-2xl font-bold text-white leading-tight">${r.title}</h1>
   <div class="flex flex-col gap-2">${r.authors.map(a => `<div class='flex items-center gap-2 text-sm text-accent-mid'><span class='bg-accent-soft text-primary w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs'>${a.trim().charAt(0).toUpperCase()}</span><span>${a}</span></div>`).join('')}</div>
   <div class="h-px bg-border-dark"></div>
-  <a href="${r.pdfUrl || 'javascript:void(0)'}" target="_blank" class="flex items-center justify-center gap-2 bg-primary text-white h-12 w-full rounded-lg font-semibold hover:bg-primary-hover transition-colors"><span class="material-symbols-outlined text-[18px]">download</span>Download PDF</a>
+  <a href="${r.pdfUrl || '#'}" target="_blank" class="flex items-center justify-center gap-2 bg-primary text-white h-12 w-full rounded-lg font-semibold hover:bg-primary-hover transition-colors"><span class="material-symbols-outlined text-[18px]">download</span>Download PDF</a>
   <div class="grid grid-cols-3 gap-2">
     <button onclick="copyCitationText(activeCitation())" class="h-12 border border-border-dark rounded-lg text-accent-muted hover:text-primary hover:border-primary/40 flex flex-col items-center justify-center text-xs"><span class="material-symbols-outlined text-[18px]">format_quote</span>Cite</button>
     <button onclick="window.print()" class="h-12 border border-border-dark rounded-lg text-accent-muted hover:text-primary hover:border-primary/40 flex flex-col items-center justify-center text-xs"><span class="material-symbols-outlined text-[18px]">print</span>Print</button>
@@ -645,14 +582,14 @@ function renderArticleSidebar(r) {
   <div>
     <p class="text-xs uppercase tracking-widest text-accent-muted font-bold mb-2">Publication Details</p>
     <div class="bg-surface-darker border border-border-dark rounded-lg p-3 text-sm">
-      <div class="grid grid-cols-3 gap-2 py-1"><span class="text-accent-muted">Journal</span><span class="col-span-2 text-slate-900">${r.source}</span></div>
-      <div class="grid grid-cols-3 gap-2 py-1"><span class="text-accent-muted">Volume</span><span class="col-span-2 text-slate-900">${r.vol}</span></div>
-      <div class="grid grid-cols-3 gap-2 py-1"><span class="text-accent-muted">Issue</span><span class="col-span-2 text-slate-900 font-mono">${r.issue}</span></div>
-      <div class="grid grid-cols-3 gap-2 py-1"><span class="text-accent-muted">Year</span><span class="col-span-2 text-slate-900">${r.year}</span></div>
-      <div class="grid grid-cols-3 gap-2 py-1"><span class="text-accent-muted">Pages</span><span class="col-span-2 text-slate-900">${r.pages}</span></div>
-      <div class="grid grid-cols-3 gap-2 py-1"><span class="text-accent-muted">Language</span><span class="col-span-2 text-slate-900">${langMap[r.lang] || r.lang}</span></div>
-      <div class="grid grid-cols-3 gap-2 py-1"><span class="text-accent-muted">ISSN</span><span class="col-span-2 text-slate-900 font-mono">${r.issn || '-'}</span></div>
-      <div class="grid grid-cols-3 gap-2 py-1"><span class="text-accent-muted">DOI</span><span class="col-span-2 text-slate-900 font-mono">${r.doi ? `<a class='hover:text-primary' target='_blank' href='https://doi.org/${r.doi}'>${r.doi}</a>` : '-'}</span></div>
+      <div class="grid grid-cols-3 gap-2 py-1"><span class="text-accent-muted">Journal</span><span class="col-span-2 text-white">${r.source}</span></div>
+      <div class="grid grid-cols-3 gap-2 py-1"><span class="text-accent-muted">Volume</span><span class="col-span-2 text-white">${r.vol}</span></div>
+      <div class="grid grid-cols-3 gap-2 py-1"><span class="text-accent-muted">Issue</span><span class="col-span-2 text-white font-mono">${r.issue}</span></div>
+      <div class="grid grid-cols-3 gap-2 py-1"><span class="text-accent-muted">Year</span><span class="col-span-2 text-white">${r.year}</span></div>
+      <div class="grid grid-cols-3 gap-2 py-1"><span class="text-accent-muted">Pages</span><span class="col-span-2 text-white">${r.pages}</span></div>
+      <div class="grid grid-cols-3 gap-2 py-1"><span class="text-accent-muted">Language</span><span class="col-span-2 text-white">${langMap[r.lang] || r.lang}</span></div>
+      <div class="grid grid-cols-3 gap-2 py-1"><span class="text-accent-muted">ISSN</span><span class="col-span-2 text-white font-mono">${r.issn || '-'}</span></div>
+      <div class="grid grid-cols-3 gap-2 py-1"><span class="text-accent-muted">DOI</span><span class="col-span-2 text-white font-mono">${r.doi ? `<a class='hover:text-primary' target='_blank' href='https://doi.org/${r.doi}'>${r.doi}</a>` : '-'}</span></div>
     </div>
   </div>
   <div class="h-px bg-border-dark"></div>
@@ -780,23 +717,15 @@ function applyZoom() {
 window.addEventListener('popstate', () => {
   const m = location.hash.match(/^#\/article\/(\d+)$/);
   if (m) openArticle(parseInt(m[1]));
-  else routeFromHash();
+  else goHome();
 });
 
 renderList(RECORDS);
+document.getElementById('statRecords').textContent = RECORDS.length;
 doSearch();
 
-function routeFromHash() {
-  const h = location.hash || '#/home';
-  const m = h.match(/^#\/article\/(\d+)$/);
-  if (m) { openArticle(parseInt(m[1])); return; }
-  if (h === '#/archive' || h === '#/') { goArchive(); return; }
-  if (h === '#/about') { goAbout(); return; }
-  if (h === '#/contact') { goContact(); return; }
-  goHome();
-}
-
-routeFromHash();
+const initM = location.hash.match(/^#\/article\/(\d+)$/);
+if (initM) openArticle(parseInt(initM[1]));
 </script>
 </body>
 </html>
